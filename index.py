@@ -8,4 +8,16 @@ from PIL import Image, ImageTk
 
 app = ctk.CTk()
 
+
+
+
+
+
+
+
+
+
+
+
+
 app.mainloop()
