@@ -1,0 +1,7 @@
+{
+  "theme": "Dark",
+  "work_min": 25,
+  "short_break_min": 5,
+  "long_break_min": 20,
+  "include_pause": false
+}
