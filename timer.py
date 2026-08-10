@@ -27,8 +27,16 @@ class PomodoroTimer:
         self.short_break_min = user_settings.get("short_break_min", config.SHORT_BREAK_MIN)
         self.long_break_min = user_settings.get("long_break_min", config.LONG_BREAK_MIN)
         self.remaining_count = self.work_min * 60
+        self.work_message = user_settings.get("work_message", config.DEFAULT_SETTINGS["work_message"])
+        self.short_break_message = user_settings.get("short_break_message", config.DEFAULT_SETTINGS["short_break_message"])
+        self.long_break_message = user_settings.get("long_break_message", config.DEFAULT_SETTINGS["long_break_message"])
+        self.app_font_family = user_settings.get("app_font_family", config.DEFAULT_SETTINGS["app_font_family"])
+        self.message_font_family = user_settings.get("message_font_family", config.DEFAULT_SETTINGS["message_font_family"])
+        self.include_skip = user_settings.get("include_skip", config.INCLUDE_SKIP_BUTTON)
         self.pause_button = None
+        self.skip_button = None
         self.pause_option_var = tk.BooleanVar(value=self.include_pause)
+        self.skip_option_var = tk.BooleanVar(value=self.include_skip)
         self.settings_panel = None
 
         self.title_label = ctk.CTkLabel(
@@ -59,10 +67,7 @@ class PomodoroTimer:
             corner_radius=0
         )
         self.button_frame.grid(column=1, row=2, pady=(0, 10), sticky="ew")
-        self.button_frame.grid_columnconfigure(0, weight=1)
-        self.button_frame.grid_columnconfigure(1, weight=1)
-        if self.include_pause:
-            self.button_frame.grid_columnconfigure(2, weight=1)
+        self._configure_button_frame_columns()
 
         self.start_button = ctk.CTkButton(
             self.button_frame,
@@ -80,20 +85,31 @@ class PomodoroTimer:
             fg_color="#e74c3c",
             hover_color="#c0392b",
         )
-        reset_column = 2 if self.include_pause else 1
-        self.reset_button.grid(column=reset_column, row=0, padx=(5, 10), pady=5, sticky="ew")
+        self.reset_button.grid(column=1, row=0, padx=(5, 10), pady=5, sticky="ew")
 
         if self.include_pause:
             self.create_pause_button()
+        if self.include_skip:
+            self.create_skip_button()
+        self._update_button_layout()
+
+        self.message_label = ctk.CTkLabel(
+            self.root,
+            text=self.work_message,
+            text_color=self.palette["TEXT_COLOR"],
+            bg_color=self.palette["APP_BG"],
+            font=self.message_font
+        )
+        self.message_label.grid(column=1, row=3, pady=(5, 0))
 
         self.menu_button = ctk.CTkButton(
             self.root,
-            text="⚙ Settings",
+            text="⚙",
             command=self.toggle_settings_panel,
             fg_color=self.palette["BUTTON_BG"],
             hover_color=self.palette["BUTTON_BG"],
             text_color=self.palette["TEXT_COLOR"],
-            width=110,
+            width=60,
             height=40,
             corner_radius=20,
         )
@@ -122,9 +138,12 @@ class PomodoroTimer:
         self.canvas.itemconfig(self.time_text, text=f"{self.work_min:02d}:00")
         self.title_label.configure(text="Timer", text_color=self.palette["TEXT_COLOR"])
         self.check_marks.configure(text="")
+        self.message_label.configure(text=self.work_message)
         self.start_button.configure(state="normal")
         if self.include_pause and self.pause_button:
             self.pause_button.configure(state="disabled", text="Pause")
+        if self.include_skip and self.skip_button:
+            self.skip_button.configure(state="disabled")
 
     def create_pause_button(self):
         if self.pause_button:
@@ -138,16 +157,62 @@ class PomodoroTimer:
             hover_color="#d68910",
             state="disabled"
         )
-        self.pause_button.grid(column=1, row=0, padx=5, pady=5, sticky="ew")
+        self._update_button_layout()
+
+    def create_skip_button(self):
+        if self.skip_button:
+            return
+        self.skip_button = ctk.CTkButton(
+            self.button_frame,
+            text="Skip",
+            command=self.skip_session,
+            fg_color="#3498db",
+            hover_color="#2980b9",
+            state="disabled"
+        )
+        self._update_button_layout()
+
+    def _configure_button_frame_columns(self):
+        total_buttons = 2 + int(self.include_pause) + int(self.include_skip)
+        for i in range(4):
+            self.button_frame.grid_columnconfigure(i, weight=0)
+        for i in range(total_buttons):
+            self.button_frame.grid_columnconfigure(i, weight=1)
+
+    def _update_button_layout(self):
+        self._configure_button_frame_columns()
+        self.start_button.grid_forget()
+        if self.pause_button:
+            self.pause_button.grid_forget()
+        if self.skip_button:
+            self.skip_button.grid_forget()
         self.reset_button.grid_forget()
-        self.reset_button.grid(column=2, row=0, padx=(5, 10), pady=5, sticky="w")
+
+        column = 0
+        self.start_button.grid(column=column, row=0, padx=(10, 5), pady=5, sticky="ew")
+        column += 1
+
+        if self.pause_button:
+            self.pause_button.grid(column=column, row=0, padx=5, pady=5, sticky="ew")
+            column += 1
+
+        if self.skip_button:
+            self.skip_button.grid(column=column, row=0, padx=5, pady=5, sticky="ew")
+            column += 1
+
+        self.reset_button.grid(column=column, row=0, padx=(5, 10), pady=5, sticky="ew")
 
     def destroy_pause_button(self):
         if self.pause_button:
             self.pause_button.destroy()
             self.pause_button = None
-        self.reset_button.grid_forget()
-        self.reset_button.grid(column=1, row=0, padx=(5, 10), pady=5, sticky="ew")
+        self._update_button_layout()
+
+    def destroy_skip_button(self):
+        if self.skip_button:
+            self.skip_button.destroy()
+            self.skip_button = None
+        self._update_button_layout()
 
     def toggle_pause_option(self):
         self.include_pause = self.pause_option_var.get()
@@ -155,6 +220,15 @@ class PomodoroTimer:
             self.create_pause_button()
         else:
             self.destroy_pause_button()
+        self._update_button_layout()
+
+    def toggle_skip_option(self):
+        self.include_skip = self.skip_option_var.get()
+        if self.include_skip:
+            self.create_skip_button()
+        else:
+            self.destroy_skip_button()
+        self._update_button_layout()
 
     def toggle_settings_panel(self):
         self.settings_panel.toggle()
@@ -176,7 +250,13 @@ class PomodoroTimer:
             "work_min": self.work_min,
             "short_break_min": self.short_break_min,
             "long_break_min": self.long_break_min,
+            "work_message": self.work_message,
+            "short_break_message": self.short_break_message,
+            "long_break_message": self.long_break_message,
+            "app_font_family": self.app_font_family,
+            "message_font_family": self.message_font_family,
             "include_pause": self.include_pause,
+            "include_skip": self.include_skip,
         })
 
     def start_timer(self):
@@ -188,18 +268,24 @@ class PomodoroTimer:
         self.start_button.configure(state="disabled")
         if self.include_pause and self.pause_button:
             self.pause_button.configure(state="normal", text="Pause")
+        if self.include_skip and self.skip_button:
+            self.skip_button.configure(state="normal")
         self.reps += 1
 
         if self.reps % 8 == 0:
             self.remaining_count = self.long_break_min * 60
             self.title_label.configure(text="Long Break", text_color="#e7305b")
+            message_text = self.long_break_message
         elif self.reps % 2 == 0:
             self.remaining_count = self.short_break_min * 60
             self.title_label.configure(text="Short Break", text_color="#e2979c")
+            message_text = self.short_break_message
         else:
             self.remaining_count = self.work_min * 60
             self.title_label.configure(text="Work", text_color="#9bdeac")
+            message_text = self.work_message
 
+        self.message_label.configure(text=message_text)
         self.count_down(self.remaining_count)
 
     def toggle_pause(self):
@@ -217,6 +303,38 @@ class PomodoroTimer:
             self.pause_button.configure(text="Resume")
             self.start_button.configure(state="disabled")
 
+    def skip_session(self):
+        if self.timer_id:
+            self.root.after_cancel(self.timer_id)
+            self.timer_id = None
+        self.is_paused = False
+        self.is_running = False
+        if self.include_pause and self.pause_button:
+            self.pause_button.configure(state="disabled", text="Pause")
+        if self.include_skip and self.skip_button:
+            self.skip_button.configure(state="disabled")
+
+        # Advance to next cycle without extra repetition count adjustment
+        next_reps = self.reps + 1
+        if next_reps % 8 == 0:
+            self.remaining_count = self.long_break_min * 60
+            self.title_label.configure(text="Long Break", text_color="#e7305b")
+            message_text = self.long_break_message
+        elif next_reps % 2 == 0:
+            self.remaining_count = self.short_break_min * 60
+            self.title_label.configure(text="Short Break", text_color="#e2979c")
+            message_text = self.short_break_message
+        else:
+            self.remaining_count = self.work_min * 60
+            self.title_label.configure(text="Work", text_color="#9bdeac")
+            message_text = self.work_message
+
+        self.reps = next_reps
+        self.message_label.configure(text=message_text)
+        self.start_button.configure(state="disabled")
+        self.is_running = True
+        self.count_down(self.remaining_count)
+
     def count_down(self, count):
         self.remaining_count = count
         minutes = count // 60
@@ -233,6 +351,8 @@ class PomodoroTimer:
             self.is_running = False
             if self.include_pause and self.pause_button:
                 self.pause_button.configure(state="disabled", text="Pause")
+            if self.include_skip and self.skip_button:
+                self.skip_button.configure(state="disabled")
             self.start_button.configure(state="normal")
 
 

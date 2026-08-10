@@ -1,7 +1,11 @@
 {
-  "theme": "Dark",
+  "theme": "Light",
   "work_min": 25,
   "short_break_min": 5,
   "long_break_min": 20,
-  "include_pause": false
+  "work_message": "Focus on your task!",
+  "short_break_message": "Take a short, refreshing break.",
+  "long_break_message": "Enjoy your longer break and recharge.",
+  "include_pause": false,
+  "include_skip": false
 }

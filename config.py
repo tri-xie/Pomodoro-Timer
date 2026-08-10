@@ -11,10 +11,20 @@ TEXT_COLOR = "#ECF0F1"    # Off-White
 WORK_COLOR = "#E74C3C"    # Tomato Red
 BREAK_COLOR = "#2ECC71"   # Emerald Green
 INCLUDE_PAUSE_BUTTON = True  # Set to False if users do not want the Pause/Resume option
+INCLUDE_SKIP_BUTTON = False  # Set to True to enable the Skip session option by default
 
 WORK_MIN = 25
 SHORT_BREAK_MIN = 5
 LONG_BREAK_MIN = 20
+
+APP_FONT_FAMILY = "Courier"
+MESSAGE_FONT_FAMILY = "Helvetica"
+APP_FONT_CHOICES = ["Courier", "Helvetica", "Times", "Arial", "Consolas"]
+MESSAGE_FONT_CHOICES = ["Courier", "Helvetica", "Times", "Arial", "Consolas"]
+
+WORK_MESSAGE = "Focus on your task!"
+SHORT_BREAK_MESSAGE = "Take a short, refreshing break."
+LONG_BREAK_MESSAGE = "Enjoy your longer break and recharge."
 
 DEFAULT_THEME = "Light"
 THEME_CHOICES = ["Light", "Dark"]
@@ -40,7 +50,13 @@ DEFAULT_SETTINGS = {
     "work_min": WORK_MIN,
     "short_break_min": SHORT_BREAK_MIN,
     "long_break_min": LONG_BREAK_MIN,
+    "work_message": WORK_MESSAGE,
+    "short_break_message": SHORT_BREAK_MESSAGE,
+    "long_break_message": LONG_BREAK_MESSAGE,
+    "app_font_family": APP_FONT_FAMILY,
+    "message_font_family": MESSAGE_FONT_FAMILY,
     "include_pause": INCLUDE_PAUSE_BUTTON,
+    "include_skip": INCLUDE_SKIP_BUTTON,
 }
 
 
