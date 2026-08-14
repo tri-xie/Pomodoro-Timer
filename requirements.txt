@@ -1,0 +1,4 @@
+customtkinter
+Pillow
+plyer
+pygame>=2.6.0
