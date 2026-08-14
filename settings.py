@@ -27,12 +27,20 @@ class SettingsPanel:
         self.timer = timer
         self.visible = False
 
+        # self.frame = ctk.CTkScrollableFrame(
+        #     parent,
+        #     fg_color="#ecf0f1",
+        #     corner_radius=10,
+        #     border_width=1,
+        #     border_color="#bdc3c7",
+        #     height=520,
+        # )
         self.frame = ctk.CTkScrollableFrame(
             parent,
-            fg_color="#ecf0f1",
+            fg_color=timer.palette["FRAME_BG"],
             corner_radius=10,
             border_width=1,
-            border_color="#bdc3c7",
+            border_color=timer.palette["TEXT_COLOR"],
             height=520,
         )
         self.frame.grid_columnconfigure(0, weight=1)
@@ -52,7 +60,10 @@ class SettingsPanel:
         self.long_break_message_var = tk.StringVar(value=timer.long_break_message)
         self.app_font_var = tk.StringVar(value=timer.app_font_family)
         self.message_font_var = tk.StringVar(value=timer.message_font_family)
-        self.theme_var = tk.StringVar(value=timer.theme)
+        # self.theme_var = tk.StringVar(value=timer.theme)
+        self.appearance_var = tk.StringVar(
+            value=timer.appearance_mode
+        )
         self.sound_vars = {s: tk.StringVar(value=timer.sound_settings[s]) for s in ("Work", "Short Break", "Long Break")}
         self.custom_sound_vars = {s: tk.StringVar(value=timer.custom_sound_paths[s]) for s in ("Work", "Short Break", "Long Break")}
         self.sound_widgets = {}
@@ -138,10 +149,40 @@ class SettingsPanel:
         self.message_font_label.grid(row=row, column=0, padx=20, pady=(10, 0), sticky="w"); row += 1
         self.message_font_menu = ctk.CTkOptionMenu(self.frame, values=config.MESSAGE_FONT_CHOICES, variable=self.message_font_var, command=lambda _v: self._apply_changes())
         self.message_font_menu.grid(row=row, column=0, padx=20, pady=(5, 10), sticky="w"); row += 1
-        self.theme_label = ctk.CTkLabel(self.frame, text="Theme:")
-        self.theme_label.grid(row=row, column=0, padx=20, pady=(10, 0), sticky="w"); row += 1
-        self.theme_menu = ctk.CTkOptionMenu(self.frame, values=config.THEME_CHOICES, variable=self.theme_var, command=lambda _v: self._apply_changes())
-        self.theme_menu.grid(row=row, column=0, padx=20, pady=(5, 10), sticky="w"); row += 1
+        # self.theme_label = ctk.CTkLabel(self.frame, text="Theme:")
+        # self.theme_label.grid(row=row, column=0, padx=20, pady=(10, 0), sticky="w"); row += 1
+        # self.theme_menu = ctk.CTkOptionMenu(self.frame, values=config.THEME_CHOICES, variable=self.theme_var, command=lambda _v: self._apply_changes())
+        # self.theme_menu.grid(row=row, column=0, padx=20, pady=(5, 10), sticky="w"); row += 1
+
+
+        self.appearance_label = ctk.CTkLabel(
+            self.frame,
+            text="Appearance:"
+        )
+        self.appearance_label.grid(
+            row=row,
+            column=0,
+            padx=20,
+            pady=(10, 0),
+            sticky="w"
+        )
+        row += 1
+
+        self.appearance_menu = ctk.CTkOptionMenu(
+            self.frame,
+            values=config.APPEARANCE_MODE_CHOICES,
+            variable=self.appearance_var,
+            command=self._apply_appearance_change
+        )
+        self.appearance_menu.grid(
+            row=row,
+            column=0,
+            padx=20,
+            pady=(5, 10),
+            sticky="w"
+        )
+        row += 1
+
 
         self.custom_theme_button = ctk.CTkButton(
             self.frame,
@@ -174,6 +215,11 @@ class SettingsPanel:
         self.notification_title_entry.bind("<FocusOut>", lambda _e: self._apply_changes())
         self.notification_message_entry.bind("<FocusOut>", lambda _e: self._apply_changes())
 
+    def _apply_appearance_change(self, value):
+        self.timer.set_standard_appearance_mode(value)
+        self.refresh_theme()
+        self.timer.save_settings()
+
     def show(self):
         self.pause_option_var.set(self.timer.include_pause)
         self.skip_option_var.set(self.timer.include_skip)
@@ -191,7 +237,11 @@ class SettingsPanel:
         self.long_break_message_var.set(self.timer.long_break_message)
         self.app_font_var.set(self.timer.app_font_family)
         self.message_font_var.set(self.timer.message_font_family)
-        self.theme_var.set(self.timer.theme)
+        # self.theme_var.set(self.timer.theme)
+
+        self.appearance_var.set(
+            self.timer.appearance_mode
+        )
         for session in self.sound_vars:
             self.sound_vars[session].set(self.timer.sound_settings[session])
             self.custom_sound_vars[session].set(self.timer.custom_sound_paths[session])
@@ -212,14 +262,14 @@ class SettingsPanel:
         labels = (self.volume_label, self.notification_title_label, self.notification_message_label, self.sound_title,
                   self.work_label, self.short_break_label, self.long_break_label, self.work_message_label,
                   self.short_break_message_label, self.long_break_message_label, self.app_font_label,
-                  self.message_font_label, self.theme_label, self.preview_label)
+                  self.message_font_label, self.appearance_label, self.preview_label)
         for w in checks + labels:
             w.configure(text_color=palette["TEXT_COLOR"], bg_color=palette["FRAME_BG"])
         for w in (self.work_entry, self.short_break_entry, self.long_break_entry, self.work_message_entry,
                   self.short_break_message_entry, self.long_break_message_entry, self.notification_title_entry,
                   self.notification_message_entry):
             w.configure(text_color=palette["TEXT_COLOR"], fg_color=palette["APP_BG"], border_color=palette["TEXT_COLOR"])
-        for w in (self.app_font_menu, self.message_font_menu, self.theme_menu) + tuple(x[1] for x in self.sound_widgets.values()):
+        for w in (self.app_font_menu, self.message_font_menu, self.appearance_menu) + tuple(x[1] for x in self.sound_widgets.values()):
             w.configure(button_color=palette["BUTTON_BG"], fg_color=palette["FRAME_BG"], text_color=palette["TEXT_COLOR"])
         self.volume_slider.configure(progress_color=palette["BUTTON_BG"], button_color=palette["TEXT_COLOR"])
         self.preview_message_label.configure(text_color=palette["TEXT_COLOR"], bg_color=palette["FRAME_BG"])
@@ -246,7 +296,7 @@ class SettingsPanel:
         self.timer.long_break_message = self.long_break_message_var.get().strip() or self.timer.long_break_message
         if self.app_font_var.get() in config.APP_FONT_CHOICES: self.timer.app_font_family = self.app_font_var.get()
         if self.message_font_var.get() in config.MESSAGE_FONT_CHOICES: self.timer.message_font_family = self.message_font_var.get()
-        if self.theme_var.get() in config.THEME_CHOICES: self.timer.theme = self.theme_var.get()
+        # if self.theme_var.get() in config.THEME_CHOICES: self.timer.theme = self.theme_var.get()
         for session in self.sound_vars:
             self.timer.sound_settings[session] = self.sound_vars[session].get()
             self.timer.custom_sound_paths[session] = self.custom_sound_vars[session].get().strip()
@@ -289,7 +339,7 @@ class SettingsPanel:
         self.volume_var.set(d["alert_volume"]); self.notification_title_var.set(d["notification_title"]); self.notification_message_var.set(d["notification_message"])
         self.work_min_var.set(str(d["work_min"])); self.short_break_min_var.set(str(d["short_break_min"])); self.long_break_min_var.set(str(d["long_break_min"]))
         self.work_message_var.set(d["work_message"]); self.short_break_message_var.set(d["short_break_message"]); self.long_break_message_var.set(d["long_break_message"])
-        self.app_font_var.set(d["app_font_family"]); self.message_font_var.set(d["message_font_family"]); self.theme_var.set(d["theme"])
+        self.app_font_var.set(d["app_font_family"]); self.message_font_var.set(d["message_font_family"]); self.appearance_var.set(d["appearance_mode"])
         for session, key in (("Work", "work_sound"), ("Short Break", "short_break_sound"), ("Long Break", "long_break_sound")):
             self.sound_vars[session].set(d[key]); self.custom_sound_vars[session].set("")
         self._apply_changes()

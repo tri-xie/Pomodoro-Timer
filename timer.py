@@ -20,10 +20,62 @@ class PomodoroTimer:
     def __init__(self, root, include_pause=config.INCLUDE_PAUSE_BUTTON):
         self.root = root
         self.app_icon_path = os.path.join(os.path.dirname(__file__), "app logo.ico")
+        # user_settings = config.load_user_settings()
+        # self.include_pause = user_settings.get("include_pause", include_pause)
+        # self.theme = user_settings.get("theme", config.DEFAULT_THEME)
+        # self.palette = config.THEME_PALETTES.get(self.theme, config.THEME_PALETTES[config.DEFAULT_THEME])
+
+        # user_settings = config.load_user_settings()
+
+        # self.theme_store = ThemeStore(config.THEME_PATH)
+
+        # self.include_pause = user_settings.get("include_pause", include_pause)
+
+        # # CustomTkinter appearance mode
+        # self.appearance_mode = user_settings.get("appearance_mode", "System")
+        # ctk.set_appearance_mode(self.appearance_mode)
+
+        # # Application color theme
+        # # self.theme = user_settings.get("theme", config.DEFAULT_THEME)
+        # self.theme = self.theme_store.data.get("preset", config.DEFAULT_THEME)
+        # self.palette = config.THEME_PALETTES.get(
+        #     self.theme,
+        #     config.THEME_PALETTES[config.DEFAULT_THEME]
+        # )
+
         user_settings = config.load_user_settings()
-        self.include_pause = user_settings.get("include_pause", include_pause)
-        self.theme = user_settings.get("theme", config.DEFAULT_THEME)
-        self.palette = config.THEME_PALETTES.get(self.theme, config.THEME_PALETTES[config.DEFAULT_THEME])
+
+        # ---------------------------------------------------------
+        # Theme systems
+        # ---------------------------------------------------------
+
+        # CustomTkinter appearance: System / Light / Dark
+        self.appearance_mode = user_settings.get(
+            "appearance_mode",
+            config.DEFAULT_APPEARANCE_MODE
+        )
+
+        ctk.set_appearance_mode(self.appearance_mode)
+
+        # Custom color theme: Classic / Ocean / Sunset / etc.
+        self.theme_store = ThemeStore(config.THEME_PATH)
+
+        self.custom_theme = self.theme_store.data.get(
+            "preset",
+            "Classic"
+        )
+
+        # Standard Light/Dark palette
+        self.palette = config.THEME_PALETTES.get(
+            self.appearance_mode if self.appearance_mode != "System" else "Light",
+            config.THEME_PALETTES["Light"]
+        )
+
+        self.include_pause = user_settings.get(
+            "include_pause",
+            include_pause
+        )
+
         self.root.title("Pomodoro Timer")
         self.root.configure(padx=20, pady=20, bg=self.palette["APP_BG"])
         self.root.grid_columnconfigure(0, weight=0)
@@ -63,12 +115,12 @@ class PomodoroTimer:
         self.skip_button = None
         self.pause_option_var = tk.BooleanVar(value=self.include_pause)
         self.skip_option_var = tk.BooleanVar(value=self.include_skip)
-        self.settings_panel = None
+        # self.settings_panel = None
         
         # Core data stores
         self.history = SessionHistory(config.HISTORY_PATH)
         self.task_store = TaskStore(config.TASKS_PATH)
-        self.theme_store = ThemeStore(config.THEME_PATH)
+        # self.theme_store = ThemeStore(config.THEME_PATH)
         self._background_image_ref = None
         self.current_task_id = None
 
@@ -176,22 +228,47 @@ class PomodoroTimer:
         )
         self.menu_button.grid(column=0, row=0, padx=(10, 0), pady=(10, 0), sticky="w")
 
+        # self.settings_panel = SettingsPanel(self.root, self)
+        # self.stats_panel = StatsPanel(self.root, self)
+        # self.scheduler_panel = SchedulerPanel(self.root, self)
+        # self.theme_customizer = ThemeCustomizer(self.root, self)
+
+        # self.check_marks = ctk.CTkLabel(
+        #     self.root,
+        #     text="",
+        #     text_color="#9bdeac",
+        #     bg_color=self.palette["APP_BG"],
+        #     font=(self.app_font_family, 18)
+        # )
+        # self.check_marks.grid(column=1, row=5, pady=(16, 0))
+        # self.apply_fonts()
+        # self.apply_theme()
+
+        # self.apply_custom_theme()
+
         self.settings_panel = SettingsPanel(self.root, self)
         self.stats_panel = StatsPanel(self.root, self)
         self.scheduler_panel = SchedulerPanel(self.root, self)
         self.theme_customizer = ThemeCustomizer(self.root, self)
-        self.apply_custom_theme()
 
         self.check_marks = ctk.CTkLabel(
             self.root,
             text="",
-            text_color="#9bdeac",
+            text_color=self.palette["TEXT_COLOR"],
             bg_color=self.palette["APP_BG"],
             font=(self.app_font_family, 18)
         )
-        self.check_marks.grid(column=1, row=5, pady=(16, 0))
+        self.check_marks.grid(
+            column=1,
+            row=5,
+            pady=(16, 0)
+        )
+
         self.apply_fonts()
         self.apply_theme()
+
+        # If a custom theme is selected, apply it AFTER all widgets exist.
+        self.apply_custom_theme()
 
     def reset_timer(self):
         if self.timer_id:
@@ -300,7 +377,13 @@ class PomodoroTimer:
             self.destroy_skip_button()
         self._update_button_layout()
 
+    # def toggle_settings_panel(self):
+    #     self.settings_panel.toggle()
+
     def toggle_settings_panel(self):
+        if self.settings_panel is None:
+            self.settings_panel = SettingsPanel(self.root, self)
+
         self.settings_panel.toggle()
 
     def apply_fonts(self):
@@ -341,27 +424,217 @@ class PomodoroTimer:
         except Exception:
             pass
 
+    # def set_standard_appearance_mode(self, mode):
+    #     """Switch Light/Dark/System and explicitly replace custom-theme visuals."""
+    #     if mode not in ("Light", "Dark", "System"):
+    #         mode = "System"
+    #     self.clear_custom_theme()
+    #     ctk.set_appearance_mode(mode)
+    #     self.apply_theme()
+
+
+    # def set_standard_appearance_mode(self, mode):
+    #     if mode not in ("Light", "Dark", "System"):
+    #         mode = "System"
+
+    #     self.appearance_mode = mode
+
+    #     ctk.set_appearance_mode(mode)
+
+    #     self.clear_custom_theme()
+    #     self.apply_theme()
+
     def set_standard_appearance_mode(self, mode):
-        """Switch Light/Dark/System and explicitly replace custom-theme visuals."""
-        if mode not in ("Light", "Dark", "System"):
-            mode = "System"
+        if mode not in config.APPEARANCE_MODE_CHOICES:
+            mode = config.DEFAULT_APPEARANCE_MODE
+
+        self.appearance_mode = mode
+
+        # Standard appearance mode means we stop using
+        # the custom background image/theme overlay.
         self.clear_custom_theme()
-        ctk.set_appearance_mode(mode)
+
+        ctk.set_appearance_mode(self.appearance_mode)
+
         self.apply_theme()
 
+    # def apply_theme(self):
+    #     if self.theme not in config.THEME_PALETTES:
+    #         self.theme = config.DEFAULT_THEME
+    #     self.palette = config.THEME_PALETTES[self.theme]
+    #     appearance_mode = self.theme if self.theme in ("Light", "Dark", "System") else "System"
+    #     ctk.set_appearance_mode(appearance_mode)
+    #     self.root.configure(bg=self.palette["APP_BG"])
+    #     self.title_label.configure(bg_color=self.palette["APP_BG"], text_color=self.palette["TEXT_COLOR"])
+    #     self.canvas.configure(bg=self.palette["CANVAS_BG"])
+    #     self.canvas.itemconfig(self.time_text, fill=self.palette["TEXT_COLOR"])
+    #     self.button_frame.configure(fg_color=self.palette["APP_BG"])
+    #     self.check_marks.configure(bg_color=self.palette["APP_BG"], text_color=self.palette["TEXT_COLOR"])
+    #     self.settings_panel.refresh_theme()
+
+    # def apply_theme(self):
+    #     if self.theme not in config.THEME_PALETTES:
+    #         self.theme = config.DEFAULT_THEME
+
+    #     self.palette = config.THEME_PALETTES[self.theme]
+
+    #     # Appearance mode is independent from the selected color theme.
+    #     ctk.set_appearance_mode(self.appearance_mode)
+
+    #     app_bg = self.palette["APP_BG"]
+    #     canvas_bg = self.palette["CANVAS_BG"]
+    #     text_color = self.palette["TEXT_COLOR"]
+    #     button_bg = self.palette["BUTTON_BG"]
+
+    #     # Main window
+    #     self.root.configure(bg=app_bg)
+
+    #     # Main labels
+    #     self.title_label.configure(
+    #         bg_color=app_bg,
+    #         text_color=text_color,
+    #     )
+
+    #     self.message_label.configure(
+    #         bg_color=app_bg,
+    #         text_color=text_color,
+    #     )
+
+    #     self.check_marks.configure(
+    #         bg_color=app_bg,
+    #         text_color=text_color,
+    #     )
+
+    #     # Timer canvas is a normal Tkinter widget, so it needs
+    #     # its own explicit background/color update.
+    #     self.canvas.configure(bg=canvas_bg)
+    #     self.canvas.itemconfig(
+    #         self.time_text,
+    #         fill=text_color,
+    #     )
+
+    #     # Button area
+    #     self.button_frame.configure(
+    #         fg_color=app_bg,
+    #     )
+
+    #     # Main buttons
+    #     self.stats_button.configure(
+    #         fg_color=button_bg,
+    #         hover_color=button_bg,
+    #         text_color=text_color,
+    #     )
+
+    #     self.schedule_button.configure(
+    #         fg_color=button_bg,
+    #         hover_color=button_bg,
+    #         text_color=text_color,
+    #     )
+
+    #     self.menu_button.configure(
+    #         fg_color=button_bg,
+    #         hover_color=button_bg,
+    #         text_color=text_color,
+    #     )
+
+    #     # Timer control buttons
+    #     self.start_button.configure(
+    #         fg_color=self.palette["START_BUTTON"],
+    #         hover_color=self.palette["START_BUTTON_HOVER"],
+    #     )
+
+    #     self.reset_button.configure(
+    #         fg_color=self.palette["RESET_BUTTON"],
+    #         hover_color=self.palette["RESET_BUTTON_HOVER"],
+    #     )
+
+    #     if self.pause_button:
+    #         self.pause_button.configure(
+    #             fg_color=self.palette["PAUSE_BUTTON"],
+    #             hover_color=self.palette["PAUSE_BUTTON_HOVER"],
+    #         )
+
+    #     if self.skip_button:
+    #         self.skip_button.configure(
+    #             fg_color=self.palette["SKIP_BUTTON"],
+    #             hover_color=self.palette["SKIP_BUTTON_HOVER"],
+    #         )
+
+    #     # Other panels
+    #     self.settings_panel.refresh_theme()
+
     def apply_theme(self):
-        if self.theme not in config.THEME_PALETTES:
-            self.theme = config.DEFAULT_THEME
-        self.palette = config.THEME_PALETTES[self.theme]
-        appearance_mode = self.theme if self.theme in ("Light", "Dark", "System") else "System"
-        ctk.set_appearance_mode(appearance_mode)
-        self.root.configure(bg=self.palette["APP_BG"])
-        self.title_label.configure(bg_color=self.palette["APP_BG"], text_color=self.palette["TEXT_COLOR"])
-        self.canvas.configure(bg=self.palette["CANVAS_BG"])
-        self.canvas.itemconfig(self.time_text, fill=self.palette["TEXT_COLOR"])
-        self.button_frame.configure(fg_color=self.palette["APP_BG"])
-        self.check_marks.configure(bg_color=self.palette["APP_BG"], text_color=self.palette["TEXT_COLOR"])
-        self.settings_panel.refresh_theme()
+        # Get the standard palette for the current appearance mode.
+        mode = self.appearance_mode
+
+        # "System" needs a concrete palette for our normal Tk widgets.
+        if mode == "System":
+            mode = "Light"
+
+        if mode not in config.THEME_PALETTES:
+            mode = "Light"
+
+        self.palette = config.THEME_PALETTES[mode]
+
+        # Tell CustomTkinter about the appearance mode.
+        ctk.set_appearance_mode(self.appearance_mode)
+
+        app_bg = self.palette["APP_BG"]
+        canvas_bg = self.palette["CANVAS_BG"]
+        text_color = self.palette["TEXT_COLOR"]
+        button_bg = self.palette["BUTTON_BG"]
+
+        # Main window
+        self.root.configure(
+            bg=app_bg
+        )
+
+        # Main labels
+        self.title_label.configure(
+            bg_color=app_bg,
+            text_color=text_color
+        )
+
+        self.message_label.configure(
+            bg_color=app_bg,
+            text_color=text_color
+        )
+
+        self.check_marks.configure(
+            bg_color=app_bg,
+            text_color=text_color
+        )
+
+        # Normal Tkinter canvas
+        self.canvas.configure(
+            bg=canvas_bg
+        )
+
+        self.canvas.itemconfig(
+            self.time_text,
+            fill=text_color
+        )
+
+        # Timer button frame
+        self.button_frame.configure(
+            fg_color=app_bg
+        )
+
+        # Top buttons
+        for button in (
+            self.stats_button,
+            self.schedule_button,
+            self.menu_button,
+        ):
+            button.configure(
+                fg_color=button_bg,
+                hover_color=button_bg,
+                text_color=text_color
+            )
+
+        # Refresh settings panel
+        if self.settings_panel:
+            self.settings_panel.refresh_theme()
 
     def start_scheduled_task(self, task):
         self.current_task_id = task.get("id")
@@ -376,31 +649,202 @@ class PomodoroTimer:
         self.current_task_id = task.get("id")
         self.start_timer()
 
+    # def apply_custom_theme(self):
+    #     colors = self.theme_store.colors
+    #     self.root.configure(fg_color=colors["bg_start"])
+    #     for name in ("title_label", "timer_label", "message_label", "check_marks"):
+    #         if hasattr(self, name):
+    #             getattr(self, name).configure(text_color=colors["text"])
+    #     for name in ("start_button", "pause_button", "skip_button", "reset_button",
+    #                  "stats_button", "schedule_button", "theme_button"):
+    #         if hasattr(self, name):
+    #             try:
+    #                 getattr(self, name).configure(
+    #                     fg_color=colors["accent"],
+    #                     hover_color=colors["accent"],
+    #                     text_color=colors["text"]
+    #                 )
+    #             except Exception:
+    #                 pass
+    #     path = self.theme_store.data.get("background_image", "")
+    #     if path and os.path.isfile(path):
+    #         try:
+    #             image = Image.open(path)
+    #             image = image.resize((max(self.root.winfo_width(), 700), max(self.root.winfo_height(), 600)))
+    #             self._background_image_ref = ctk.CTkImage(light_image=image, dark_image=image, size=image.size)
+    #         except Exception:
+    #             self._background_image_ref = None
+
+
+    # def apply_custom_theme(self):
+    #     colors = self.theme_store.colors
+
+    #     bg = colors["bg_start"]
+    #     text = colors["text"]
+    #     accent = colors["accent"]
+
+    #     # Main window
+    #     self.root.configure(
+    #         fg_color=bg,
+    #         bg=bg,
+    #     )
+
+    #     # Normal Tkinter canvas
+    #     self.canvas.configure(bg=bg)
+    #     self.canvas.itemconfig(
+    #         self.time_text,
+    #         fill=text,
+    #     )
+
+    #     # Frames
+    #     self.button_frame.configure(
+    #         fg_color=bg,
+    #     )
+
+    #     # Labels
+    #     self.title_label.configure(
+    #         text_color=text,
+    #         bg_color=bg,
+    #     )
+
+    #     self.message_label.configure(
+    #         text_color=text,
+    #         bg_color=bg,
+    #     )
+
+    #     self.check_marks.configure(
+    #         text_color=text,
+    #         bg_color=bg,
+    #     )
+
+    #     # Top buttons
+    #     for button in (
+    #         self.stats_button,
+    #         self.schedule_button,
+    #         self.menu_button,
+    #     ):
+    #         button.configure(
+    #             fg_color=accent,
+    #             hover_color=accent,
+    #             text_color=text,
+    #         )
+
+    #     # Timer buttons
+    #     for button in (
+    #         self.start_button,
+    #         self.pause_button,
+    #         self.skip_button,
+    #         self.reset_button,
+    #     ):
+    #         if button is not None:
+    #             button.configure(
+    #                 fg_color=accent,
+    #                 hover_color=accent,
+    #                 text_color=text,
+    #             )
+
+    #     # Refresh auxiliary windows
+    #     self.settings_panel.refresh_theme()
+
+    #     if hasattr(self, "theme_customizer"):
+    #         self.theme_customizer.preview(self.theme_store.data.get("preset", "Classic"))
+
+
     def apply_custom_theme(self):
         colors = self.theme_store.colors
-        self.root.configure(fg_color=colors["bg_start"])
-        for name in ("title_label", "timer_label", "message_label", "check_marks"):
-            if hasattr(self, name):
-                getattr(self, name).configure(text_color=colors["text"])
-        for name in ("start_button", "pause_button", "skip_button", "reset_button",
-                     "stats_button", "schedule_button", "theme_button"):
-            if hasattr(self, name):
-                try:
-                    getattr(self, name).configure(
-                        fg_color=colors["accent"],
-                        hover_color=colors["accent"],
-                        text_color=colors["text"]
-                    )
-                except Exception:
-                    pass
+
+        bg = colors["bg_start"]
+        text = colors["text"]
+        accent = colors["accent"]
+
+        # Custom theme is a color theme.
+        # It does NOT change Light/Dark appearance mode.
+        self.root.configure(
+            bg=bg,
+            fg_color=bg
+        )
+
+        # Canvas
+        self.canvas.configure(
+            bg=bg
+        )
+
+        self.canvas.itemconfig(
+            self.time_text,
+            fill=text
+        )
+
+        # Frames
+        self.button_frame.configure(
+            fg_color=bg
+        )
+
+        # Labels
+        self.title_label.configure(
+            bg_color=bg,
+            text_color=text
+        )
+
+        self.message_label.configure(
+            bg_color=bg,
+            text_color=text
+        )
+
+        self.check_marks.configure(
+            bg_color=bg,
+            text_color=text
+        )
+
+        # Top buttons
+        for button in (
+            self.stats_button,
+            self.schedule_button,
+            self.menu_button,
+        ):
+            button.configure(
+                fg_color=accent,
+                hover_color=accent,
+                text_color=text
+            )
+
+        # Timer buttons
+        for button in (
+            self.start_button,
+            self.pause_button,
+            self.skip_button,
+            self.reset_button,
+        ):
+            if button is not None:
+                button.configure(
+                    fg_color=accent,
+                    hover_color=accent,
+                    text_color=text
+                )
+
+        # Background image
         path = self.theme_store.data.get("background_image", "")
+
         if path and os.path.isfile(path):
             try:
-                image = Image.open(path)
-                image = image.resize((max(self.root.winfo_width(), 700), max(self.root.winfo_height(), 600)))
-                self._background_image_ref = ctk.CTkImage(light_image=image, dark_image=image, size=image.size)
+                image = Image.open(path).convert("RGB")
+
+                width = max(self.root.winfo_width(), 700)
+                height = max(self.root.winfo_height(), 600)
+
+                image = image.resize(
+                    (width, height),
+                    Image.Resampling.LANCZOS
+                )
+
+                self._background_image_ref = ctk.CTkImage(
+                    light_image=image,
+                    dark_image=image,
+                    size=image.size
+                )
+
             except Exception:
                 self._background_image_ref = None
+                
 
     def toggle_theme_customizer(self):
         existing = self._prepare_child_window("theme_window")
@@ -425,7 +869,8 @@ class PomodoroTimer:
 
     def save_settings(self):
         config.save_user_settings({
-            "theme": self.theme,
+            # "theme": self.theme,
+            "appearance_mode": self.appearance_mode,
             "work_min": self.work_min,
             "short_break_min": self.short_break_min,
             "long_break_min": self.long_break_min,
@@ -534,15 +979,15 @@ class PomodoroTimer:
 
         if self.reps % 8 == 0:
             self.remaining_count = self.long_break_min * 60
-            self.title_label.configure(text="Long Break", text_color="#e7305b")
+            self.title_label.configure(text="Long Break", text_color=self.theme_store.colors["text"])
             message_text = self.long_break_message
         elif self.reps % 2 == 0:
             self.remaining_count = self.short_break_min * 60
-            self.title_label.configure(text="Short Break", text_color="#e2979c")
+            self.title_label.configure(text="Short Break", text_color=self.theme_store.colors["text"])
             message_text = self.short_break_message
         else:
             self.remaining_count = self.work_min * 60
-            self.title_label.configure(text="Work", text_color="#9bdeac")
+            self.title_label.configure(text="Work", text_color=self.theme_store.colors["text"])
             message_text = self.work_message
 
         self.message_label.configure(text=message_text)
@@ -588,15 +1033,15 @@ class PomodoroTimer:
         next_reps = self.reps + 1
         if next_reps % 8 == 0:
             self.remaining_count = self.long_break_min * 60
-            self.title_label.configure(text="Long Break", text_color="#e7305b")
+            self.title_label.configure(text="Long Break", text_color=self.theme_store.colors["text"])
             message_text = self.long_break_message
         elif next_reps % 2 == 0:
             self.remaining_count = self.short_break_min * 60
-            self.title_label.configure(text="Short Break", text_color="#e2979c")
+            self.title_label.configure(text="Short Break", text_color=self.theme_store.colors["text"])
             message_text = self.short_break_message
         else:
             self.remaining_count = self.work_min * 60
-            self.title_label.configure(text="Work", text_color="#9bdeac")
+            self.title_label.configure(text="Work", text_color=self.theme_store.colors["text"])
             message_text = self.work_message
 
         self.reps = next_reps

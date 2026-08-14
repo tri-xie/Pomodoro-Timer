@@ -5,6 +5,8 @@ from PIL import Image, ImageTk
 import config
 from timer import PomodoroTimer
 
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
 app.title("Pomodoro : Keep Focused")

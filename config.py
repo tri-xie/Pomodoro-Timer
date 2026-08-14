@@ -41,27 +41,66 @@ WORK_MESSAGE = "Focus on your task!"
 SHORT_BREAK_MESSAGE = "Take a short, refreshing break."
 LONG_BREAK_MESSAGE = "Enjoy your longer break and recharge."
 
-DEFAULT_THEME = "Light"
-THEME_CHOICES = ["Light", "Dark"]
+# DEFAULT_THEME = "Light"
+# THEME_CHOICES = ["Light", "Dark"]
+# THEME_PALETTES = {
+#     "Light": {
+#         "APP_BG": "#f7f5dd",
+#         "FRAME_BG": "#ecf0f1",
+#         "CANVAS_BG": "#f7f5dd",
+#         "TEXT_COLOR": "#2c3e50",
+#         "BUTTON_BG": "#ecf0f1",
+#     },
+#     "Dark": {
+#         "APP_BG": "#1f2937",
+#         "FRAME_BG": "#2d3748",
+#         "CANVAS_BG": "#1f2937",
+#         "TEXT_COLOR": "#ecf0f1",
+#         "BUTTON_BG": "#4a5568",
+#     },
+# }
+
+# ---------------------------------------------------------
+# Appearance mode
+# ---------------------------------------------------------
+
+DEFAULT_APPEARANCE_MODE = "System"
+APPEARANCE_MODE_CHOICES = ["System", "Light", "Dark"]
+
+# Kept for compatibility with existing settings/UI code.
+# "theme" is now the CustomTkinter appearance mode.
+DEFAULT_THEME = DEFAULT_APPEARANCE_MODE
+THEME_CHOICES = APPEARANCE_MODE_CHOICES
+
+
+# ---------------------------------------------------------
+# Standard application palettes
+# ---------------------------------------------------------
+#
+# These are used when a custom color theme is NOT active.
+#
+
 THEME_PALETTES = {
     "Light": {
-        "APP_BG": "#f7f5dd",
-        "FRAME_BG": "#ecf0f1",
-        "CANVAS_BG": "#f7f5dd",
-        "TEXT_COLOR": "#2c3e50",
-        "BUTTON_BG": "#ecf0f1",
+        "APP_BG": "#F7F5DD",
+        "FRAME_BG": "#ECF0F1",
+        "CANVAS_BG": "#F7F5DD",
+        "TEXT_COLOR": "#2C3E50",
+        "BUTTON_BG": "#ECF0F1",
     },
+
     "Dark": {
-        "APP_BG": "#1f2937",
-        "FRAME_BG": "#2d3748",
-        "CANVAS_BG": "#1f2937",
-        "TEXT_COLOR": "#ecf0f1",
-        "BUTTON_BG": "#4a5568",
+        "APP_BG": "#1F2937",
+        "FRAME_BG": "#2D3748",
+        "CANVAS_BG": "#1F2937",
+        "TEXT_COLOR": "#ECF0F1",
+        "BUTTON_BG": "#4A5568",
     },
 }
 
 DEFAULT_SETTINGS = {
     "theme": DEFAULT_THEME,
+    "appearance_mode": DEFAULT_APPEARANCE_MODE,
     "work_min": WORK_MIN,
     "short_break_min": SHORT_BREAK_MIN,
     "long_break_min": LONG_BREAK_MIN,
@@ -101,6 +140,9 @@ def load_user_settings():
     # partially corrupted. Fall back to safe defaults for invalid values.
     if merged["theme"] not in THEME_CHOICES:
         merged["theme"] = DEFAULT_THEME
+
+    if merged["appearance_mode"] not in APPEARANCE_MODE_CHOICES:
+        merged["appearance_mode"] = DEFAULT_APPEARANCE_MODE
 
     for key in ("work_min", "short_break_min", "long_break_min"):
         try:
