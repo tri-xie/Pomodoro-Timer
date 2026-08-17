@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog
 
@@ -7,6 +8,7 @@ import config
 
 
 class SettingsPanel:
+
     def __init__(self, parent, timer):
         self.parent = parent
         self.timer = timer
@@ -15,7 +17,9 @@ class SettingsPanel:
         # --------------------------------------------------
         # PANEL WINDOW
         # --------------------------------------------------
+
         self.window = ctk.CTkToplevel(parent)
+
         self.window.title("Settings")
         self.window.geometry("620x700")
         self.window.minsize(560, 600)
@@ -28,8 +32,12 @@ class SettingsPanel:
         # Start hidden
         self.window.withdraw()
 
-        # Allow the content to expand
         self.window.grid_columnconfigure(
+            0,
+            weight=1
+        )
+
+        self.window.grid_rowconfigure(
             0,
             weight=1
         )
@@ -43,7 +51,11 @@ class SettingsPanel:
     # ==================================================
 
     def _build_ui(self):
-        # Main scrollable container
+
+        # --------------------------------------------------
+        # MAIN SCROLLABLE CONTAINER
+        # --------------------------------------------------
+
         self.scroll = ctk.CTkScrollableFrame(
             self.window,
             corner_radius=0
@@ -52,14 +64,7 @@ class SettingsPanel:
         self.scroll.grid(
             row=0,
             column=0,
-            sticky="nsew",
-            padx=0,
-            pady=0
-        )
-
-        self.window.grid_rowconfigure(
-            0,
-            weight=1
+            sticky="nsew"
         )
 
         self.scroll.grid_columnconfigure(
@@ -69,9 +74,10 @@ class SettingsPanel:
 
         row = 0
 
-        # --------------------------------------------------
+        # ==================================================
         # TITLE
-        # --------------------------------------------------
+        # ==================================================
+
         self.title_label = ctk.CTkLabel(
             self.scroll,
             text="Settings",
@@ -89,6 +95,7 @@ class SettingsPanel:
         # ==================================================
         # TIMER SETTINGS
         # ==================================================
+
         self.timer_section = self._create_section(
             "Timer Settings"
         )
@@ -129,8 +136,9 @@ class SettingsPanel:
         )
 
         # ==================================================
-        # MESSAGES
+        # SESSION MESSAGES
         # ==================================================
+
         self.message_section = self._create_section(
             "Session Messages"
         )
@@ -173,6 +181,7 @@ class SettingsPanel:
         # ==================================================
         # APPEARANCE
         # ==================================================
+
         self.appearance_section = self._create_section(
             "Appearance"
         )
@@ -187,18 +196,17 @@ class SettingsPanel:
 
         row += 1
 
-        # Standard appearance mode
         appearance_label = ctk.CTkLabel(
             self.appearance_section,
             text="Appearance Mode"
         )
 
         appearance_label.grid(
-            row=0,
+            row=1,
             column=0,
             sticky="w",
             padx=10,
-            pady=(10, 5)
+            pady=6
         )
 
         self.appearance_var = tk.StringVar()
@@ -217,19 +225,15 @@ class SettingsPanel:
         )
 
         self.appearance_menu.grid(
-            row=0,
+            row=1,
             column=1,
+            columnspan=2,
             sticky="ew",
             padx=10,
-            pady=(10, 5)
+            pady=6
         )
 
-        # --------------------------------------------------
-        # CUSTOM THEME BUTTON
-        #
-        # This is intentionally always created and visible.
-        # It opens the ThemeCustomizer window from timer.py.
-        # --------------------------------------------------
+        # Custom Theme button
         self.custom_theme_button = ctk.CTkButton(
             self.appearance_section,
             text="Custom Theme",
@@ -237,27 +241,18 @@ class SettingsPanel:
         )
 
         self.custom_theme_button.grid(
-            row=1,
+            row=2,
             column=0,
-            columnspan=2,
+            columnspan=3,
             sticky="ew",
             padx=10,
-            pady=(10, 15)
-        )
-
-        self.appearance_section.grid_columnconfigure(
-            0,
-            weight=1
-        )
-
-        self.appearance_section.grid_columnconfigure(
-            1,
-            weight=1
+            pady=(6, 12)
         )
 
         # ==================================================
         # FONTS
         # ==================================================
+
         self.font_section = self._create_section(
             "Fonts"
         )
@@ -312,8 +307,9 @@ class SettingsPanel:
         )
 
         # ==================================================
-        # TIMER BUTTON OPTIONS
+        # TIMER CONTROLS
         # ==================================================
+
         self.button_section = self._create_section(
             "Timer Controls"
         )
@@ -339,11 +335,12 @@ class SettingsPanel:
         )
 
         self.pause_checkbox.grid(
-            row=0,
+            row=1,
             column=0,
+            columnspan=3,
             sticky="w",
             padx=10,
-            pady=8
+            pady=6
         )
 
         self.skip_checkbox = ctk.CTkCheckBox(
@@ -354,16 +351,18 @@ class SettingsPanel:
         )
 
         self.skip_checkbox.grid(
-            row=1,
+            row=2,
             column=0,
+            columnspan=3,
             sticky="w",
             padx=10,
-            pady=8
+            pady=(6, 12)
         )
 
         # ==================================================
-        # ALERT SETTINGS
+        # SESSION ALERTS
         # ==================================================
+
         self.alert_section = self._create_section(
             "Session Alerts"
         )
@@ -388,12 +387,12 @@ class SettingsPanel:
         )
 
         self.alerts_checkbox.grid(
-            row=0,
+            row=1,
             column=0,
-            columnspan=2,
+            columnspan=3,
             sticky="w",
             padx=10,
-            pady=8
+            pady=6
         )
 
         volume_label = ctk.CTkLabel(
@@ -402,11 +401,11 @@ class SettingsPanel:
         )
 
         volume_label.grid(
-            row=1,
+            row=2,
             column=0,
             sticky="w",
             padx=10,
-            pady=8
+            pady=(6, 12)
         )
 
         self.volume_var = tk.DoubleVar()
@@ -420,11 +419,11 @@ class SettingsPanel:
         )
 
         self.volume_slider.grid(
-            row=1,
+            row=2,
             column=1,
             sticky="ew",
             padx=10,
-            pady=8
+            pady=(6, 12)
         )
 
         self.volume_value_label = ctk.CTkLabel(
@@ -433,9 +432,10 @@ class SettingsPanel:
         )
 
         self.volume_value_label.grid(
-            row=1,
+            row=2,
             column=2,
-            padx=(0, 10)
+            padx=(0, 10),
+            pady=(6, 12)
         )
 
         self.volume_var.trace_add(
@@ -443,14 +443,10 @@ class SettingsPanel:
             self.update_volume_label
         )
 
-        self.alert_section.grid_columnconfigure(
-            1,
-            weight=1
-        )
-
         # ==================================================
         # NOTIFICATIONS
         # ==================================================
+
         self.notification_section = self._create_section(
             "Notifications"
         )
@@ -474,11 +470,12 @@ class SettingsPanel:
         )
 
         self.notifications_checkbox.grid(
-            row=0,
+            row=1,
             column=0,
+            columnspan=3,
             sticky="w",
             padx=10,
-            pady=8
+            pady=6
         )
 
         self.notification_title_var = tk.StringVar()
@@ -499,8 +496,9 @@ class SettingsPanel:
         )
 
         # ==================================================
-        # SOUNDS
+        # SESSION SOUNDS
         # ==================================================
+
         self.sound_section = self._create_section(
             "Session Sounds"
         )
@@ -528,37 +526,51 @@ class SettingsPanel:
             ]
         )
 
-        self.work_sound_var = tk.StringVar()
-        self.short_break_sound_var = tk.StringVar()
-        self.long_break_sound_var = tk.StringVar()
+        self.sound_vars = {
+            "Work": tk.StringVar(),
+            "Short Break": tk.StringVar(),
+            "Long Break": tk.StringVar()
+        }
 
-        self._add_sound_row(
-            self.sound_section,
-            0,
-            "Work",
-            self.work_sound_var,
-            sound_choices
-        )
+        self.custom_sound_vars = {
+            "Work": tk.StringVar(),
+            "Short Break": tk.StringVar(),
+            "Long Break": tk.StringVar()
+        }
+
+        self.sound_file_labels = {}
+
+        # Each sound block uses 3 rows.
+        # The section title occupies row 0.
 
         self._add_sound_row(
             self.sound_section,
             1,
-            "Short Break",
-            self.short_break_sound_var,
+            "Work",
+            self.sound_vars["Work"],
             sound_choices
         )
 
         self._add_sound_row(
             self.sound_section,
-            2,
+            4,
+            "Short Break",
+            self.sound_vars["Short Break"],
+            sound_choices
+        )
+
+        self._add_sound_row(
+            self.sound_section,
+            7,
             "Long Break",
-            self.long_break_sound_var,
+            self.sound_vars["Long Break"],
             sound_choices
         )
 
         # ==================================================
         # SAVE / CLOSE
         # ==================================================
+
         self.action_frame = ctk.CTkFrame(
             self.scroll,
             fg_color="transparent"
@@ -613,14 +625,25 @@ class SettingsPanel:
     # ==================================================
 
     def _create_section(self, title):
+
         frame = ctk.CTkFrame(
             self.scroll,
             corner_radius=12
         )
 
         frame.grid_columnconfigure(
+            0,
+            weight=0
+        )
+
+        frame.grid_columnconfigure(
             1,
             weight=1
+        )
+
+        frame.grid_columnconfigure(
+            2,
+            weight=0
         )
 
         title_label = ctk.CTkLabel(
@@ -638,7 +661,6 @@ class SettingsPanel:
             pady=(10, 8)
         )
 
-        # Keep references for theme refresh
         frame.section_title = title_label
 
         return frame
@@ -650,13 +672,16 @@ class SettingsPanel:
         label_text,
         variable
     ):
+
+        grid_row = row + 1
+
         label = ctk.CTkLabel(
             parent,
             text=label_text
         )
 
         label.grid(
-            row=row + 1,
+            row=grid_row,
             column=0,
             sticky="w",
             padx=10,
@@ -669,7 +694,7 @@ class SettingsPanel:
         )
 
         entry.grid(
-            row=row + 1,
+            row=grid_row,
             column=1,
             columnspan=2,
             sticky="ew",
@@ -688,13 +713,16 @@ class SettingsPanel:
         values,
         command=None
     ):
+
+        grid_row = row + 1
+
         label = ctk.CTkLabel(
             parent,
             text=label_text
         )
 
         label.grid(
-            row=row + 1,
+            row=grid_row,
             column=0,
             sticky="w",
             padx=10,
@@ -709,7 +737,7 @@ class SettingsPanel:
         )
 
         option_menu.grid(
-            row=row + 1,
+            row=grid_row,
             column=1,
             columnspan=2,
             sticky="ew",
@@ -719,6 +747,10 @@ class SettingsPanel:
 
         return option_menu
 
+    # ==================================================
+    # SOUND ROW
+    # ==================================================
+
     def _add_sound_row(
         self,
         parent,
@@ -727,55 +759,281 @@ class SettingsPanel:
         variable,
         choices
     ):
+
+        # --------------------------------------------------
+        # ROW 1: LABEL
+        # --------------------------------------------------
+
         label = ctk.CTkLabel(
             parent,
             text=f"{session_name} Sound"
         )
 
         label.grid(
-            row=row + 1,
+            row=row,
             column=0,
             sticky="w",
             padx=10,
             pady=6
         )
 
+        # --------------------------------------------------
+        # ROW 1: SOUND MENU
+        # --------------------------------------------------
+
         menu = ctk.CTkOptionMenu(
             parent,
             values=choices,
-            variable=variable
+            variable=variable,
+            command=lambda choice,
+            name=session_name:
+                self.change_sound(
+                    name,
+                    choice
+                )
         )
 
         menu.grid(
-            row=row + 1,
+            row=row,
             column=1,
             sticky="ew",
             padx=10,
             pady=6
         )
 
+        # --------------------------------------------------
+        # ROW 1: TEST BUTTON
+        # --------------------------------------------------
+
         test_button = ctk.CTkButton(
             parent,
             text="Test",
-            width=70,
+            width=80,
             command=lambda name=session_name:
-                self.timer.test_session_alert(name)
+                self.test_selected_sound(
+                    name
+                )
         )
 
         test_button.grid(
-            row=row + 1,
+            row=row,
             column=2,
-            padx=10,
+            sticky="ew",
+            padx=(0, 10),
             pady=6
         )
 
+        # --------------------------------------------------
+        # ROW 2: CHOOSE FILE BUTTON
+        # --------------------------------------------------
+
+        choose_button = ctk.CTkButton(
+            parent,
+            text="Choose Sound File",
+            command=lambda name=session_name:
+                self.choose_custom_sound(
+                    name
+                )
+        )
+
+        choose_button.grid(
+            row=row + 1,
+            column=0,
+            columnspan=3,
+            sticky="ew",
+            padx=10,
+            pady=(0, 4)
+        )
+
+        # --------------------------------------------------
+        # ROW 3: FILE NAME
+        # --------------------------------------------------
+
+        file_label = ctk.CTkLabel(
+            parent,
+            text="No custom sound selected",
+            anchor="w"
+        )
+
+        file_label.grid(
+            row=row + 2,
+            column=0,
+            columnspan=3,
+            sticky="ew",
+            padx=10,
+            pady=(0, 10)
+        )
+
+        self.sound_file_labels[
+            session_name
+        ] = file_label
+
         return menu
+
+    # ==================================================
+    # CUSTOM SOUNDS
+    # ==================================================
+
+    def change_sound(
+        self,
+        session_name,
+        choice
+    ):
+
+        if choice == "Custom":
+
+            current_path = (
+                self.custom_sound_vars[
+                    session_name
+                ].get()
+            )
+
+            if not current_path:
+
+                self.choose_custom_sound(
+                    session_name
+                )
+
+                # User cancelled.
+                if not self.custom_sound_vars[
+                    session_name
+                ].get():
+
+                    self.sound_vars[
+                        session_name
+                    ].set(
+                        "System Default"
+                    )
+
+                    self.timer.sound_settings[
+                        session_name
+                    ] = "System Default"
+
+                    return
+
+            self.timer.sound_settings[
+                session_name
+            ] = "Custom"
+
+            return
+
+        # Normal sound selection
+        self.timer.sound_settings[
+            session_name
+        ] = choice
+
+    def choose_custom_sound(
+        self,
+        session_name
+    ):
+
+        file_path = filedialog.askopenfilename(
+            parent=self.window,
+            title=f"Choose sound for {session_name}",
+            filetypes=[
+                (
+                    "Audio files",
+                    "*.wav *.mp3 *.ogg"
+                ),
+                (
+                    "WAV files",
+                    "*.wav"
+                ),
+                (
+                    "MP3 files",
+                    "*.mp3"
+                ),
+                (
+                    "OGG files",
+                    "*.ogg"
+                ),
+                (
+                    "All files",
+                    "*.*"
+                )
+            ]
+        )
+
+        # User cancelled
+        if not file_path:
+            return
+
+        # Store path
+        self.custom_sound_vars[
+            session_name
+        ].set(
+            file_path
+        )
+
+        self.timer.custom_sound_paths[
+            session_name
+        ] = file_path
+
+        # Automatically select Custom
+        self.sound_vars[
+            session_name
+        ].set(
+            "Custom"
+        )
+
+        self.timer.sound_settings[
+            session_name
+        ] = "Custom"
+
+        # Display only filename
+        file_name = os.path.basename(
+            file_path
+        )
+
+        self.sound_file_labels[
+            session_name
+        ].configure(
+            text=file_name
+        )
+
+    def test_selected_sound(
+        self,
+        session_name
+    ):
+
+        sound_choice = self.sound_vars[
+            session_name
+        ].get()
+
+        custom_path = self.custom_sound_vars[
+            session_name
+        ].get()
+
+        # Do not test Custom without a file
+        if sound_choice == "Custom" and not custom_path:
+
+            self.show_error(
+                f"Please choose a custom sound file "
+                f"for {session_name} first."
+            )
+
+            return
+
+        # Update timer with current values
+        self.timer.sound_settings[
+            session_name
+        ] = sound_choice
+
+        self.timer.custom_sound_paths[
+            session_name
+        ] = custom_path
+
+        # Play sound
+        self.timer.test_session_alert(
+            session_name
+        )
 
     # ==================================================
     # PANEL VISIBILITY
     # ==================================================
 
     def show(self):
+
         self.load_from_timer()
 
         self.window.deiconify()
@@ -785,10 +1043,13 @@ class SettingsPanel:
         self.visible = True
 
     def hide(self):
+
         self.window.withdraw()
+
         self.visible = False
 
     def toggle(self):
+
         if self.visible:
             self.hide()
         else:
@@ -799,6 +1060,7 @@ class SettingsPanel:
     # ==================================================
 
     def load_from_timer(self):
+
         self.work_var.set(
             str(self.timer.work_min)
         )
@@ -823,7 +1085,7 @@ class SettingsPanel:
             self.timer.long_break_message
         )
 
-        # Theme mode comes from ThemeManager
+        # Theme mode
         mode = self.timer.theme_manager.data.get(
             "mode",
             "Light"
@@ -834,11 +1096,11 @@ class SettingsPanel:
             "Light",
             "Dark"
         ):
-            # Custom mode is controlled by the customizer.
-            # Keep the menu on a valid standard mode.
             mode = "System"
 
-        self.appearance_var.set(mode)
+        self.appearance_var.set(
+            mode
+        )
 
         self.app_font_var.set(
             self.timer.app_font_family
@@ -876,26 +1138,59 @@ class SettingsPanel:
             self.timer.notification_message
         )
 
-        self.work_sound_var.set(
-            self.timer.sound_settings.get(
-                "Work",
-                "System Default"
-            )
-        )
+        # --------------------------------------------------
+        # SOUND SETTINGS
+        # --------------------------------------------------
 
-        self.short_break_sound_var.set(
-            self.timer.sound_settings.get(
-                "Short Break",
-                "Information"
-            )
-        )
+        for session_name in (
+            "Work",
+            "Short Break",
+            "Long Break"
+        ):
 
-        self.long_break_sound_var.set(
-            self.timer.sound_settings.get(
-                "Long Break",
-                "Warning"
+            sound_choice = (
+                self.timer.sound_settings.get(
+                    session_name,
+                    "System Default"
+                )
             )
-        )
+
+            custom_path = (
+                self.timer.custom_sound_paths.get(
+                    session_name,
+                    ""
+                )
+            )
+
+            self.sound_vars[
+                session_name
+            ].set(
+                sound_choice
+            )
+
+            self.custom_sound_vars[
+                session_name
+            ].set(
+                custom_path
+            )
+
+            if custom_path:
+
+                file_name = os.path.basename(
+                    custom_path
+                )
+
+            else:
+
+                file_name = (
+                    "No custom sound selected"
+                )
+
+            self.sound_file_labels[
+                session_name
+            ].configure(
+                text=file_name
+            )
 
         self.update_volume_label()
 
@@ -903,13 +1198,10 @@ class SettingsPanel:
     # APPEARANCE
     # ==================================================
 
-    def change_appearance_mode(self, mode):
-        """
-        Light / Dark / System.
-
-        Selecting one of these deliberately switches
-        away from Custom mode.
-        """
+    def change_appearance_mode(
+        self,
+        mode
+    ):
 
         if mode not in (
             "System",
@@ -925,13 +1217,6 @@ class SettingsPanel:
         self.refresh_theme()
 
     def open_custom_theme(self):
-        """
-        Open the separate custom theme window.
-
-        This button is always present in the Settings
-        panel and does not depend on the appearance
-        option menu.
-        """
 
         self.timer.toggle_theme_customizer()
 
@@ -939,12 +1224,22 @@ class SettingsPanel:
     # FONT CHANGES
     # ==================================================
 
-    def change_app_font(self, value):
+    def change_app_font(
+        self,
+        value
+    ):
+
         self.timer.app_font_family = value
+
         self.timer.apply_fonts()
 
-    def change_message_font(self, value):
+    def change_message_font(
+        self,
+        value
+    ):
+
         self.timer.message_font_family = value
+
         self.timer.apply_fonts()
 
     # ==================================================
@@ -952,14 +1247,22 @@ class SettingsPanel:
     # ==================================================
 
     def toggle_alerts(self):
+
         self.timer.enable_session_alerts = (
             self.alerts_enabled_var.get()
         )
 
-    def update_volume_label(self, *args):
+    def update_volume_label(
+        self,
+        *args
+    ):
+
         try:
+
             value = int(
-                float(self.volume_var.get())
+                float(
+                    self.volume_var.get()
+                )
             )
 
             self.volume_value_label.configure(
@@ -974,7 +1277,9 @@ class SettingsPanel:
     # ==================================================
 
     def save_settings(self):
+
         try:
+
             work_min = int(
                 self.work_var.get()
             )
@@ -995,6 +1300,7 @@ class SettingsPanel:
                 raise ValueError
 
         except ValueError:
+
             self.show_error(
                 "Please enter valid timer values greater than zero."
             )
@@ -1004,6 +1310,7 @@ class SettingsPanel:
         # --------------------------------------------------
         # TIMER VALUES
         # --------------------------------------------------
+
         self.timer.work_min = work_min
 
         self.timer.short_break_min = (
@@ -1017,6 +1324,7 @@ class SettingsPanel:
         # --------------------------------------------------
         # MESSAGES
         # --------------------------------------------------
+
         self.timer.work_message = (
             self.work_message_var.get().strip()
         )
@@ -1032,6 +1340,7 @@ class SettingsPanel:
         # --------------------------------------------------
         # FONTS
         # --------------------------------------------------
+
         self.timer.app_font_family = (
             self.app_font_var.get()
         )
@@ -1043,6 +1352,7 @@ class SettingsPanel:
         # --------------------------------------------------
         # BUTTON OPTIONS
         # --------------------------------------------------
+
         self.timer.include_pause = (
             self.pause_var.get()
         )
@@ -1051,19 +1361,22 @@ class SettingsPanel:
             self.skip_var.get()
         )
 
-        # Make sure the actual timer widgets match
         self.timer.toggle_pause_option()
+
         self.timer.toggle_skip_option()
 
         # --------------------------------------------------
         # ALERT SETTINGS
         # --------------------------------------------------
+
         self.timer.enable_session_alerts = (
             self.alerts_enabled_var.get()
         )
 
         self.timer.alert_volume = int(
-            float(self.volume_var.get())
+            float(
+                self.volume_var.get()
+            )
         )
 
         self.timer.show_notifications = (
@@ -1081,26 +1394,50 @@ class SettingsPanel:
         # --------------------------------------------------
         # SOUND SETTINGS
         # --------------------------------------------------
-        self.timer.sound_settings["Work"] = (
-            self.work_sound_var.get()
-        )
 
-        self.timer.sound_settings["Short Break"] = (
-            self.short_break_sound_var.get()
-        )
+        for session_name in (
+            "Work",
+            "Short Break",
+            "Long Break"
+        ):
 
-        self.timer.sound_settings["Long Break"] = (
-            self.long_break_sound_var.get()
-        )
+            sound_choice = self.sound_vars[
+                session_name
+            ].get()
+
+            custom_path = self.custom_sound_vars[
+                session_name
+            ].get()
+
+            # Prevent Custom without file
+            if (
+                sound_choice == "Custom"
+                and not custom_path
+            ):
+
+                self.show_error(
+                    f"Please choose a custom sound file "
+                    f"for {session_name}."
+                )
+
+                return
+
+            self.timer.sound_settings[
+                session_name
+            ] = sound_choice
+
+            self.timer.custom_sound_paths[
+                session_name
+            ] = custom_path
 
         # --------------------------------------------------
         # APPLY CHANGES
         # --------------------------------------------------
+
         self.timer.apply_fonts()
 
-        # Only reset the display when the timer
-        # is not actively running.
         if not self.timer.is_running:
+
             self.timer.reset_timer()
 
         self.timer.save_settings()
@@ -1113,14 +1450,26 @@ class SettingsPanel:
     # MESSAGES
     # ==================================================
 
-    def show_error(self, message):
+    def show_error(
+        self,
+        message
+    ):
+
         dialog = ctk.CTkToplevel(
             self.window
         )
 
-        dialog.title("Settings Error")
-        dialog.geometry("360x160")
-        dialog.transient(self.window)
+        dialog.title(
+            "Settings Error"
+        )
+
+        dialog.geometry(
+            "360x160"
+        )
+
+        dialog.transient(
+            self.window
+        )
 
         ctk.CTkLabel(
             dialog,
@@ -1139,14 +1488,26 @@ class SettingsPanel:
             pady=(0, 20)
         )
 
-    def show_success(self, message):
+    def show_success(
+        self,
+        message
+    ):
+
         dialog = ctk.CTkToplevel(
             self.window
         )
 
-        dialog.title("Settings")
-        dialog.geometry("360x160")
-        dialog.transient(self.window)
+        dialog.title(
+            "Settings"
+        )
+
+        dialog.geometry(
+            "360x160"
+        )
+
+        dialog.transient(
+            self.window
+        )
 
         ctk.CTkLabel(
             dialog,
@@ -1170,10 +1531,6 @@ class SettingsPanel:
     # ==================================================
 
     def refresh_theme(self):
-        """
-        Refresh Settings using the palette currently
-        resolved by timer.py.
-        """
 
         palette = getattr(
             self.timer,
@@ -1202,16 +1559,20 @@ class SettingsPanel:
         )
 
         try:
+
             self.window.configure(
                 fg_color=app_bg
             )
+
         except Exception:
             pass
 
         try:
+
             self.scroll.configure(
                 fg_color=app_bg
             )
+
         except Exception:
             pass
 
@@ -1219,7 +1580,6 @@ class SettingsPanel:
             text_color=text_color
         )
 
-        # Refresh all CTkFrames and their section titles
         sections = (
             self.timer_section,
             self.message_section,
@@ -1232,7 +1592,9 @@ class SettingsPanel:
         )
 
         for section in sections:
+
             try:
+
                 section.configure(
                     fg_color=frame_bg
                 )
@@ -1244,15 +1606,13 @@ class SettingsPanel:
             except Exception:
                 pass
 
-        # Recursively recolor labels
         self._refresh_widget_tree(
             self.scroll,
             text_color,
             button_bg
         )
 
-        # Make the Custom Theme button explicitly
-        # match the active theme.
+        # Explicitly theme Custom Theme button
         self.custom_theme_button.configure(
             fg_color=button_bg,
             hover_color=button_bg,
@@ -1265,13 +1625,16 @@ class SettingsPanel:
         text_color,
         button_bg
     ):
+
         for child in widget.winfo_children():
 
             try:
+
                 if isinstance(
                     child,
                     ctk.CTkLabel
                 ):
+
                     child.configure(
                         text_color=text_color
                     )
@@ -1280,6 +1643,7 @@ class SettingsPanel:
                     child,
                     ctk.CTkButton
                 ):
+
                     child.configure(
                         text_color=text_color
                     )
@@ -1288,6 +1652,7 @@ class SettingsPanel:
                     child,
                     ctk.CTkCheckBox
                 ):
+
                     child.configure(
                         text_color=text_color
                     )

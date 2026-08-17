@@ -4,6 +4,7 @@ import tkinter.font as tkfont
 import os
 import subprocess
 import sys
+
 import customtkinter as ctk
 
 import config
@@ -66,13 +67,8 @@ class PomodoroTimer:
             ctk.get_appearance_mode()
         )
 
-        self.appearance_mode = (
-            self.palette["MODE"]
-        )
-
-        self.theme = (
-            self.palette["PRESET"]
-        )
+        self.appearance_mode = self.palette["MODE"]
+        self.theme = self.palette["PRESET"]
 
         # ==================================================
         # TIMER SETTINGS
@@ -156,6 +152,10 @@ class PomodoroTimer:
             "notification_message",
             config.NOTIFICATION_MESSAGE
         )
+
+        # ==================================================
+        # SOUND SETTINGS
+        # ==================================================
 
         self.sound_settings = {
             "Work": user_settings.get(
@@ -536,12 +536,109 @@ class PomodoroTimer:
         )
 
     # ======================================================
-    # TIMER CONTROLS
+    # SESSION HELPERS
+    # ======================================================
+
+    def get_session_name(self):
+
+        if self.reps == 0:
+            return "Work"
+
+        if self.reps % 8 == 0:
+            return "Long Break"
+
+        if self.reps % 2 == 0:
+            return "Short Break"
+
+        return "Work"
+
+    def get_session_duration(
+        self,
+        session_name
+    ):
+
+        if session_name == "Work":
+            return self.work_min
+
+        if session_name == "Short Break":
+            return self.short_break_min
+
+        if session_name == "Long Break":
+            return self.long_break_min
+
+        return self.work_min
+
+    def get_session_message(
+        self,
+        session_name
+    ):
+
+        if session_name == "Work":
+            return self.work_message
+
+        if session_name == "Short Break":
+            return self.short_break_message
+
+        if session_name == "Long Break":
+            return self.long_break_message
+
+        return self.work_message
+
+    def prepare_session(
+        self,
+        session_name
+    ):
+
+        duration = self.get_session_duration(
+            session_name
+        )
+
+        self.remaining_count = duration * 60
+
+        self.title_label.configure(
+            text=session_name,
+            text_color=self.palette["TEXT_COLOR"]
+        )
+
+        self.message_label.configure(
+            text=self.get_session_message(
+                session_name
+            )
+        )
+
+        minutes = (
+            self.remaining_count // 60
+        )
+
+        seconds = (
+            self.remaining_count % 60
+        )
+
+        self.canvas.itemconfig(
+            self.time_text,
+            text=f"{minutes:02d}:{seconds:02d}"
+        )
+
+    def start_next_session(self):
+
+        self.reps += 1
+
+        session_name = self.get_session_name()
+
+        self.prepare_session(
+            session_name
+        )
+
+        return session_name
+
+    # ======================================================
+    # RESET TIMER
     # ======================================================
 
     def reset_timer(self):
 
         if self.timer_id:
+
             self.root.after_cancel(
                 self.timer_id
             )
@@ -579,13 +676,21 @@ class PomodoroTimer:
             state="normal"
         )
 
-        if self.include_pause and self.pause_button:
+        if (
+            self.include_pause
+            and self.pause_button
+        ):
+
             self.pause_button.configure(
                 state="disabled",
                 text="Pause"
             )
 
-        if self.include_skip and self.skip_button:
+        if (
+            self.include_skip
+            and self.skip_button
+        ):
+
             self.skip_button.configure(
                 state="disabled"
             )
@@ -907,7 +1012,6 @@ class PomodoroTimer:
         if self.background_label is not None:
 
             try:
-
                 self.background_label.destroy()
 
             except Exception:
@@ -1068,17 +1172,9 @@ class PomodoroTimer:
 
     def apply_theme(self):
 
-        # ----------------------------------------------
-        # CUSTOMTKINTER MODE
-        # ----------------------------------------------
-
         ctk.set_appearance_mode(
             self.theme_manager.ctk_mode()
         )
-
-        # ----------------------------------------------
-        # RESOLVE PALETTE
-        # ----------------------------------------------
 
         self.palette = (
             self.theme_manager.resolve(
@@ -1094,30 +1190,15 @@ class PomodoroTimer:
             self.palette["PRESET"]
         )
 
-        app_bg = self.palette[
-            "APP_BG"
-        ]
-
-        canvas_bg = self.palette[
-            "CANVAS_BG"
-        ]
-
-        text_color = self.palette[
-            "TEXT_COLOR"
-        ]
-
-        button_bg = self.palette[
-            "BUTTON_BG"
-        ]
+        app_bg = self.palette["APP_BG"]
+        canvas_bg = self.palette["CANVAS_BG"]
+        text_color = self.palette["TEXT_COLOR"]
+        button_bg = self.palette["BUTTON_BG"]
 
         is_custom = self.palette.get(
             "IS_CUSTOM",
             False
         )
-
-        # ----------------------------------------------
-        # ROOT
-        # ----------------------------------------------
 
         try:
 
@@ -1127,10 +1208,6 @@ class PomodoroTimer:
 
         except Exception:
             pass
-
-        # ----------------------------------------------
-        # LABELS
-        # ----------------------------------------------
 
         for widget_name in (
             "title_label",
@@ -1156,10 +1233,6 @@ class PomodoroTimer:
                 except Exception:
                     pass
 
-        # ----------------------------------------------
-        # TIMER CANVAS
-        # ----------------------------------------------
-
         if getattr(
             self,
             "canvas",
@@ -1175,10 +1248,6 @@ class PomodoroTimer:
                 fill=text_color
             )
 
-        # ----------------------------------------------
-        # BUTTON FRAME
-        # ----------------------------------------------
-
         if getattr(
             self,
             "button_frame",
@@ -1188,10 +1257,6 @@ class PomodoroTimer:
             self.button_frame.configure(
                 fg_color=app_bg
             )
-
-        # ----------------------------------------------
-        # TOP BUTTONS
-        # ----------------------------------------------
 
         for button_name in (
             "stats_button",
@@ -1217,10 +1282,6 @@ class PomodoroTimer:
 
                 except Exception:
                     pass
-
-        # ----------------------------------------------
-        # TIMER BUTTONS
-        # ----------------------------------------------
 
         if is_custom:
 
@@ -1252,8 +1313,6 @@ class PomodoroTimer:
 
         else:
 
-            # Restore the original timer button colors.
-
             self.start_button.configure(
                 fg_color="#2ecc71",
                 hover_color="#27ae60",
@@ -1282,10 +1341,6 @@ class PomodoroTimer:
                     text_color=text_color
                 )
 
-        # ----------------------------------------------
-        # BACKGROUND IMAGE
-        # ----------------------------------------------
-
         if is_custom:
 
             image_path = self.palette.get(
@@ -1306,10 +1361,6 @@ class PomodoroTimer:
         else:
 
             self._clear_background_image()
-
-        # ----------------------------------------------
-        # REFRESH PANELS
-        # ----------------------------------------------
 
         for panel_name in (
             "settings_panel",
@@ -1370,15 +1421,6 @@ class PomodoroTimer:
             "Focus Session"
         )
 
-        if hasattr(
-            self,
-            "message_label"
-        ):
-
-            self.message_label.configure(
-                text=title
-            )
-
         minutes = int(
             task.get(
                 "duration_minutes",
@@ -1392,6 +1434,10 @@ class PomodoroTimer:
 
         self.current_task_id = task.get(
             "id"
+        )
+
+        self.message_label.configure(
+            text=title
         )
 
         self.start_timer()
@@ -1646,7 +1692,6 @@ class PomodoroTimer:
                 self.root.bell()
 
             except Exception:
-
                 pass
 
     def play_session_alert(
@@ -1685,7 +1730,6 @@ class PomodoroTimer:
             )
 
         except Exception:
-
             pass
 
     def test_session_alert(
@@ -1725,7 +1769,6 @@ class PomodoroTimer:
                 )
 
             except Exception:
-
                 pass
 
     # ======================================================
@@ -1735,6 +1778,40 @@ class PomodoroTimer:
     def start_timer(self):
 
         if self.is_running:
+            return
+
+        # Resume an existing paused session.
+        if self.is_paused:
+
+            self.is_paused = False
+            self.is_running = True
+
+            self.start_button.configure(
+                state="disabled"
+            )
+
+            if (
+                self.include_pause
+                and self.pause_button
+            ):
+
+                self.pause_button.configure(
+                    state="normal",
+                    text="Pause"
+                )
+
+            if (
+                self.include_skip
+                and self.skip_button
+            ):
+
+                self.skip_button.configure(
+                    state="normal"
+                )
+
+            self.count_down(
+                self.remaining_count
+            )
 
             return
 
@@ -1764,104 +1841,71 @@ class PomodoroTimer:
                 state="normal"
             )
 
-        self.reps += 1
-
-        if self.reps % 8 == 0:
-
-            self.remaining_count = (
-                self.long_break_min * 60
-            )
-
-            self.title_label.configure(
-                text="Long Break",
-                text_color=self.palette[
-                    "TEXT_COLOR"
-                ]
-            )
-
-            message_text = (
-                self.long_break_message
-            )
-
-        elif self.reps % 2 == 0:
-
-            self.remaining_count = (
-                self.short_break_min * 60
-            )
-
-            self.title_label.configure(
-                text="Short Break",
-                text_color=self.palette[
-                    "TEXT_COLOR"
-                ]
-            )
-
-            message_text = (
-                self.short_break_message
-            )
-
-        else:
-
-            self.remaining_count = (
-                self.work_min * 60
-            )
-
-            self.title_label.configure(
-                text="Work",
-                text_color=self.palette[
-                    "TEXT_COLOR"
-                ]
-            )
-
-            message_text = (
-                self.work_message
-            )
-
-        self.message_label.configure(
-            text=message_text
-        )
+        self.start_next_session()
 
         self.count_down(
             self.remaining_count
         )
 
+    # ======================================================
+    # PAUSE / RESUME
+    # ======================================================
+
     def toggle_pause(self):
 
+        if (
+            not self.is_running
+            and not self.is_paused
+        ):
+            return
+
+        # Resume
         if self.is_paused:
 
             self.is_paused = False
             self.is_running = True
 
-            self.pause_button.configure(
-                text="Pause"
-            )
+            if self.pause_button:
+
+                self.pause_button.configure(
+                    text="Pause"
+                )
 
             self.count_down(
                 self.remaining_count
             )
 
-        else:
+            return
 
-            if self.timer_id:
+        # Pause
+        if self.timer_id:
 
-                self.root.after_cancel(
-                    self.timer_id
-                )
+            self.root.after_cancel(
+                self.timer_id
+            )
 
-                self.timer_id = None
+            self.timer_id = None
 
-            self.is_paused = True
-            self.is_running = False
+        self.is_paused = True
+        self.is_running = False
+
+        if self.pause_button:
 
             self.pause_button.configure(
                 text="Resume"
             )
 
-            self.start_button.configure(
-                state="disabled"
-            )
+    # ======================================================
+    # SKIP SESSION
+    # ======================================================
 
     def skip_session(self):
+
+        if not (
+            self.is_running
+            or self.is_paused
+        ):
+            return
 
         if self.timer_id:
 
@@ -1871,22 +1915,13 @@ class PomodoroTimer:
 
             self.timer_id = None
 
-        session_name = (
-            self.title_label.cget(
-                "text"
-            )
+        session_name = self.get_session_name()
+
+        duration = self.get_session_duration(
+            session_name
         )
 
-        duration = (
-            self.work_min
-            if session_name == "Work"
-            else (
-                self.short_break_min
-                if session_name == "Short Break"
-                else self.long_break_min
-            )
-        )
-
+        # Record skipped session.
         self.history.add_session(
             session_name,
             duration,
@@ -1894,7 +1929,136 @@ class PomodoroTimer:
         )
 
         self.is_paused = False
+        self.is_running = True
+
+        if (
+            self.include_pause
+            and self.pause_button
+        ):
+
+            self.pause_button.configure(
+                state="normal",
+                text="Pause"
+            )
+
+        if (
+            self.include_skip
+            and self.skip_button
+        ):
+
+            self.skip_button.configure(
+                state="normal"
+            )
+
+        # Start next session.
+        self.start_next_session()
+
+        self.count_down(
+            self.remaining_count
+        )
+
+    # ======================================================
+    # COUNTDOWN
+    # ======================================================
+
+    def count_down(
+        self,
+        count
+    ):
+
+        self.remaining_count = count
+
+        minutes = count // 60
+        seconds = count % 60
+
+        self.canvas.itemconfig(
+            self.time_text,
+            text=f"{minutes:02d}:{seconds:02d}"
+        )
+
+        # Continue countdown.
+        if (
+            count > 0
+            and self.is_running
+        ):
+
+            self.timer_id = self.root.after(
+                1000,
+                self.count_down,
+                count - 1
+            )
+
+            return
+
+        # Session is not finished.
+        if count != 0:
+            return
+
+        self.timer_id = None
+
+        session_name = self.get_session_name()
+
+        duration = self.get_session_duration(
+            session_name
+        )
+
+        # Record completed session.
+        self.history.add_session(
+            session_name,
+            duration,
+            completed=True
+        )
+
+        # Complete scheduled task after Work session.
+        if (
+            session_name == "Work"
+            and getattr(
+                self,
+                "current_task_id",
+                None
+            )
+        ):
+
+            self.task_store.update(
+                self.current_task_id,
+                completed=True
+            )
+
+            self.current_task_id = None
+
+            if (
+                hasattr(
+                    self,
+                    "scheduler_panel"
+                )
+                and self.scheduler_panel.visible
+            ):
+
+                self.scheduler_panel.refresh()
+
+        # Play the correct alert.
+        self.play_session_alert(
+            session_name
+        )
+
+        # Add a check mark only for completed Work sessions.
+        if session_name == "Work":
+
+            completed_work_sessions = (
+                (self.reps + 1) // 2
+            )
+
+            self.check_marks.configure(
+                text="✔" * completed_work_sessions
+            )
+
+        # Stop current session.
         self.is_running = False
+        self.is_paused = False
+
+        self.start_button.configure(
+            state="normal"
+        )
 
         if (
             self.include_pause
@@ -1913,191 +2077,4 @@ class PomodoroTimer:
 
             self.skip_button.configure(
                 state="disabled"
-            )
-
-        next_reps = (
-            self.reps + 1
-        )
-
-        if next_reps % 8 == 0:
-
-            self.remaining_count = (
-                self.long_break_min * 60
-            )
-
-            self.title_label.configure(
-                text="Long Break",
-                text_color=self.palette[
-                    "TEXT_COLOR"
-                ]
-            )
-
-            message_text = (
-                self.long_break_message
-            )
-
-        elif next_reps % 2 == 0:
-
-            self.remaining_count = (
-                self.short_break_min * 60
-            )
-
-            self.title_label.configure(
-                text="Short Break",
-                text_color=self.palette[
-                    "TEXT_COLOR"
-                ]
-            )
-
-            message_text = (
-                self.short_break_message
-            )
-
-        else:
-
-            self.remaining_count = (
-                self.work_min * 60
-            )
-
-            self.title_label.configure(
-                text="Work",
-                text_color=self.palette[
-                    "TEXT_COLOR"
-                ]
-            )
-
-            message_text = (
-                self.work_message
-            )
-
-        self.reps = next_reps
-
-        self.message_label.configure(
-            text=message_text
-        )
-
-        self.start_button.configure(
-            state="disabled"
-        )
-
-        self.is_running = True
-
-        self.count_down(
-            self.remaining_count
-        )
-
-    def count_down(
-        self,
-        count
-    ):
-
-        self.remaining_count = count
-
-        minutes = count // 60
-        seconds = count % 60
-
-        self.canvas.itemconfig(
-            self.time_text,
-            text=f"{minutes:02d}:{seconds:02d}"
-        )
-
-        if (
-            count > 0
-            and self.is_running
-        ):
-
-            self.timer_id = self.root.after(
-                1000,
-                self.count_down,
-                count - 1
-            )
-
-        elif count == 0:
-
-            self.timer_id = None
-
-            session_name = (
-                self.title_label.cget(
-                    "text"
-                )
-            )
-
-            duration = (
-                self.work_min
-                if session_name == "Work"
-                else (
-                    self.short_break_min
-                    if session_name == "Short Break"
-                    else self.long_break_min
-                )
-            )
-
-            self.history.add_session(
-                session_name,
-                duration,
-                completed=True
-            )
-
-            if (
-                session_name == "Work"
-                and getattr(
-                    self,
-                    "current_task_id",
-                    None
-                )
-            ):
-
-                self.task_store.update(
-                    self.current_task_id,
-                    completed=True
-                )
-
-                self.current_task_id = None
-
-                if (
-                    hasattr(
-                        self,
-                        "scheduler_panel"
-                    )
-                    and self.scheduler_panel.visible
-                ):
-
-                    self.scheduler_panel.refresh()
-
-            self.play_session_alert(
-                session_name
-            )
-
-            marks = (
-                "✔"
-                * (self.reps // 2)
-            )
-
-            self.check_marks.configure(
-                text=marks
-            )
-
-            self.is_running = False
-
-            if (
-                self.include_pause
-                and self.pause_button
-            ):
-
-                self.pause_button.configure(
-                    state="disabled",
-                    text="Pause"
-                )
-
-            if (
-                self.include_skip
-                and self.skip_button
-            ):
-
-                self.skip_button.configure(
-                    state="disabled"
-                )
-
-            self.start_button.configure(
-                state="normal"
             )

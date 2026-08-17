@@ -4,5 +4,83 @@
     "type": "Work",
     "duration_minutes": 25,
     "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T09:18:33",
+    "type": "Work",
+    "duration_minutes": 1,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T09:19:44",
+    "type": "Short Break",
+    "duration_minutes": 1,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T10:15:25",
+    "type": "Work",
+    "duration_minutes": 1,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T10:16:47",
+    "type": "Work",
+    "duration_minutes": 1,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T10:18:14",
+    "type": "Work",
+    "duration_minutes": 1,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T11:09:55",
+    "type": "Work",
+    "duration_minutes": 25,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T11:15:06",
+    "type": "Short Break",
+    "duration_minutes": 5,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T11:40:15",
+    "type": "Work",
+    "duration_minutes": 25,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T11:45:29",
+    "type": "Short Break",
+    "duration_minutes": 5,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T12:20:37",
+    "type": "Work",
+    "duration_minutes": 25,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T12:25:45",
+    "type": "Short Break",
+    "duration_minutes": 5,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T12:50:49",
+    "type": "Work",
+    "duration_minutes": 25,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T12:55:55",
+    "type": "Short Break",
+    "duration_minutes": 5,
+    "completed": true
   }
 ]
