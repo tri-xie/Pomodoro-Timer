@@ -100,5 +100,11 @@
     "type": "Work",
     "duration_minutes": 25,
     "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T14:11:44",
+    "type": "Long Break",
+    "duration_minutes": 20,
+    "completed": true
   }
 ]
