@@ -82,5 +82,23 @@
     "type": "Short Break",
     "duration_minutes": 5,
     "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T13:21:10",
+    "type": "Work",
+    "duration_minutes": 25,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T13:26:26",
+    "type": "Short Break",
+    "duration_minutes": 5,
+    "completed": true
+  },
+  {
+    "timestamp": "2026-08-17T13:51:37",
+    "type": "Work",
+    "duration_minutes": 25,
+    "completed": true
   }
 ]

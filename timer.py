@@ -7,6 +7,14 @@ import sys
 
 import customtkinter as ctk
 
+try:
+    from windows_toasts import Toast, WindowsToaster
+    WINDOWS_TOASTS_AVAILABLE = True
+
+except ImportError:
+    WINDOWS_TOASTS_AVAILABLE = False
+
+
 import config
 from settings import SettingsPanel
 from history import SessionHistory
@@ -1713,8 +1721,28 @@ class PomodoroTimer:
 
         try:
 
-            from plyer import notification
+            from windows_toasts import Toast, WindowsToaster
 
+            WINDOWS_TOASTS_AVAILABLE = True
+
+        except ImportError:
+            WINDOWS_TOASTS_AVAILABLE = False
+
+    def test_session_alert(
+            self,
+            session_name
+        ):
+
+        if not self.show_notifications:
+            return
+
+        if not WINDOWS_TOASTS_AVAILABLE:
+            print(
+            "Windows notification package is not available."
+        )   
+        return
+
+        try:
             message = (
                 self.notification_message.replace(
                     "{session}",
@@ -1722,55 +1750,26 @@ class PomodoroTimer:
                 )
             )
 
-            notification.notify(
-                title=self.notification_title,
-                message=message,
-                app_name="Pomodoro Timer",
-                timeout=5
+            toaster = WindowsToaster(
+                "Pomodoro Timer"
             )
 
-        except Exception:
-            pass
+            toast = Toast()
 
-    def test_session_alert(
-        self,
-        session_name
-    ):
+            toast.text_fields = [
+                self.notification_title,
+                message
+            ]
 
-        if (
-            self.sound_settings.get(
-                session_name
-            )
-            != "None"
-        ):
-
-            self._play_session_sound(
-                session_name
+            toaster.show_toast(
+                toast
             )
 
-        if self.show_notifications:
-
-            try:
-
-                from plyer import notification
-
-                message = (
-                    self.notification_message.replace(
-                        "{session}",
-                        session_name
-                    )
-                )
-
-                notification.notify(
-                    title=self.notification_title,
-                    message=message,
-                    app_name="Pomodoro Timer",
-                    timeout=5
-                )
-
-            except Exception:
-                pass
-
+        except Exception as error:
+            print(
+                "Notification error:",
+                error
+            )
     # ======================================================
     # TIMER LOGIC
     # ======================================================
