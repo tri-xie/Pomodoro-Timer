@@ -1,9 +1,20 @@
 ﻿import json
 import os
+import sys 
+
+
+
+if getattr(sys, "frozen", False):
+    # Running as a PyInstaller executable
+    BASE_DIR = sys._MEIPASS
+else:
+    # Running normally with Python
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 BASE_DIR = os.path.dirname(__file__)
-ICON_PATH = os.path.join(BASE_DIR, "app logo.ico")
-LOGO_PATH = os.path.join(BASE_DIR, "app logo.jpg")
+ICON_PATH = os.path.join(BASE_DIR, "app_logo.ico")
+LOGO_PATH = os.path.join(BASE_DIR, "app_logo.jpg")
 SETTINGS_PATH = os.path.join(BASE_DIR, "user_settings.json")
 HISTORY_PATH = os.path.join(BASE_DIR, "session_history.json")
 TASKS_PATH = os.path.join(BASE_DIR, "scheduled_tasks.json")
