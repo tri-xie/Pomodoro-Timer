@@ -61,7 +61,8 @@ class PomodoroTimer:
         if saved_mode in (
             "Light",
             "Dark",
-            "System"
+            "System",
+            "Custom"
         ):
             self.theme_manager.set_mode(
                 saved_mode
@@ -213,16 +214,19 @@ class PomodoroTimer:
             bg=self.palette["APP_BG"]
         )
 
+        # Left column: Settings
         self.root.grid_columnconfigure(
             0,
             weight=0
         )
 
+        # Middle column: Main application
         self.root.grid_columnconfigure(
             1,
             weight=1
         )
 
+        # Right spacer
         self.root.grid_columnconfigure(
             2,
             weight=0
@@ -280,6 +284,125 @@ class PomodoroTimer:
         self.background_label = None
 
         # ==================================================
+        # TOP BAR
+        # ==================================================
+
+        self.top_bar = ctk.CTkFrame(
+            self.root,
+            fg_color="transparent"
+        )
+
+        self.top_bar.grid(
+            column=0,
+            row=0,
+            columnspan=3,
+            sticky="ew",
+            pady=(0, 10)
+        )
+
+        self.top_bar.grid_columnconfigure(
+            0,
+            weight=0
+        )
+
+        self.top_bar.grid_columnconfigure(
+            1,
+            weight=1
+        )
+
+        self.top_bar.grid_columnconfigure(
+            2,
+            weight=0
+        )
+
+        # ==================================================
+        # SETTINGS BUTTON
+        # ==================================================
+
+        self.menu_button = ctk.CTkButton(
+            self.top_bar,
+            text="⚙",
+            command=self.toggle_settings_panel,
+            fg_color=self.palette["BUTTON_BG"],
+            hover_color=self.palette["BUTTON_BG"],
+            text_color=self.palette["TEXT_COLOR"],
+            width=50,
+            height=38,
+            corner_radius=19
+        )
+
+        self.menu_button.grid(
+            column=0,
+            row=0,
+            padx=(0, 15),
+            sticky="w"
+        )
+
+        # ==================================================
+        # TOP ACTIONS
+        # ==================================================
+
+        self.top_actions_frame = ctk.CTkFrame(
+            self.top_bar,
+            fg_color="transparent"
+        )
+
+        self.top_actions_frame.grid(
+            column=1,
+            row=0
+        )
+
+        self.top_actions_frame.grid_columnconfigure(
+            0,
+            weight=1,
+            uniform="top_actions"
+        )
+
+        self.top_actions_frame.grid_columnconfigure(
+            1,
+            weight=1,
+            uniform="top_actions"
+        )
+
+        self.stats_button = ctk.CTkButton(
+            self.top_actions_frame,
+            text="Session Stats",
+            command=self.toggle_stats_panel,
+            fg_color=self.palette["BUTTON_BG"],
+            hover_color=self.palette["BUTTON_BG"],
+            text_color=self.palette["TEXT_COLOR"],
+            width=140,
+            height=36,
+            corner_radius=18
+        )
+
+        self.stats_button.grid(
+            column=0,
+            row=0,
+            padx=(0, 5),
+            sticky="ew"
+        )
+
+        self.schedule_button = ctk.CTkButton(
+            self.top_actions_frame,
+            text="Schedule Focus",
+            command=self.toggle_scheduler_panel,
+            fg_color=self.palette["BUTTON_BG"],
+            hover_color=self.palette["BUTTON_BG"],
+            text_color=self.palette["TEXT_COLOR"],
+            width=140,
+            height=36,
+            corner_radius=18
+        )
+
+        self.schedule_button.grid(
+            column=1,
+            row=0,
+            padx=(5, 0),
+            sticky="ew"
+        )
+
+        # ==================================================
         # MAIN TITLE
         # ==================================================
 
@@ -298,7 +421,7 @@ class PomodoroTimer:
         self.title_label.grid(
             column=1,
             row=1,
-            pady=(10, 0)
+            pady=(5, 0)
         )
 
         # ==================================================
@@ -371,6 +494,30 @@ class PomodoroTimer:
             sticky="ew"
         )
 
+        self.button_frame.grid_columnconfigure(
+            0,
+            weight=1,
+            uniform="timer_controls"
+        )
+
+        self.button_frame.grid_columnconfigure(
+            1,
+            weight=1,
+            uniform="timer_controls"
+        )
+
+        self.button_frame.grid_columnconfigure(
+            2,
+            weight=1,
+            uniform="timer_controls"
+        )
+
+        self.button_frame.grid_columnconfigure(
+            3,
+            weight=1,
+            uniform="timer_controls"
+        )
+
         # ==================================================
         # TIMER BUTTONS
         # ==================================================
@@ -398,93 +545,6 @@ class PomodoroTimer:
             self.create_skip_button()
 
         self._update_button_layout()
-
-        # ==================================================
-        # TOP ACTIONS
-        # ==================================================
-
-        self.top_actions_frame = ctk.CTkFrame(
-            self.root,
-            fg_color="transparent"
-        )
-
-        self.top_actions_frame.grid(
-            column=1,
-            row=0,
-            pady=(10, 0)
-        )
-
-        self.top_actions_frame.grid_columnconfigure(
-            0,
-            weight=1
-        )
-
-        self.top_actions_frame.grid_columnconfigure(
-            1,
-            weight=1
-        )
-
-        self.stats_button = ctk.CTkButton(
-            self.top_actions_frame,
-            text="Session Stats",
-            command=self.toggle_stats_panel,
-            fg_color=self.palette["BUTTON_BG"],
-            hover_color=self.palette["BUTTON_BG"],
-            text_color=self.palette["TEXT_COLOR"],
-            width=130,
-            height=34,
-            corner_radius=17
-        )
-
-        self.stats_button.grid(
-            column=0,
-            row=0,
-            padx=(0, 4),
-            sticky="ew"
-        )
-
-        self.schedule_button = ctk.CTkButton(
-            self.top_actions_frame,
-            text="Schedule Focus",
-            command=self.toggle_scheduler_panel,
-            fg_color=self.palette["BUTTON_BG"],
-            hover_color=self.palette["BUTTON_BG"],
-            text_color=self.palette["TEXT_COLOR"],
-            width=130,
-            height=34,
-            corner_radius=17
-        )
-
-        self.schedule_button.grid(
-            column=1,
-            row=0,
-            padx=(4, 0),
-            sticky="ew"
-        )
-
-        # ==================================================
-        # SETTINGS BUTTON
-        # ==================================================
-
-        self.menu_button = ctk.CTkButton(
-            self.root,
-            text="⚙",
-            command=self.toggle_settings_panel,
-            fg_color=self.palette["BUTTON_BG"],
-            hover_color=self.palette["BUTTON_BG"],
-            text_color=self.palette["TEXT_COLOR"],
-            width=60,
-            height=40,
-            corner_radius=20
-        )
-
-        self.menu_button.grid(
-            column=0,
-            row=0,
-            padx=(10, 0),
-            pady=(10, 0),
-            sticky="w"
-        )
 
         # ==================================================
         # CHECK MARKS
@@ -757,27 +817,29 @@ class PomodoroTimer:
 
         for i in range(4):
 
-            self.button_frame.grid_columnconfigure(
-                i,
-                weight=0,
-                minsize=0,
-                uniform=""
-            )
+            if i < active_count:
 
-        for i in range(active_count):
+                self.button_frame.grid_columnconfigure(
+                    i,
+                    weight=1,
+                    uniform="active_timer_controls"
+                )
 
-            self.button_frame.grid_columnconfigure(
-                i,
-                weight=1,
-                minsize=0,
-                uniform="active_timer_controls"
-            )
+            else:
+
+                self.button_frame.grid_columnconfigure(
+                    i,
+                    weight=0,
+                    minsize=0,
+                    uniform=""
+                )
 
     def _update_button_layout(self):
 
         self._configure_button_frame_columns()
 
         self.start_button.grid_forget()
+        self.reset_button.grid_forget()
 
         if self.pause_button:
             self.pause_button.grid_forget()
@@ -785,18 +847,18 @@ class PomodoroTimer:
         if self.skip_button:
             self.skip_button.grid_forget()
 
-        self.reset_button.grid_forget()
-
         active = [
             self.start_button
         ]
 
         if self.pause_button:
+
             active.append(
                 self.pause_button
             )
 
         if self.skip_button:
+
             active.append(
                 self.skip_button
             )
@@ -850,7 +912,10 @@ class PomodoroTimer:
                 self.pause_button.configure(
                     state=(
                         "normal"
-                        if self.is_running
+                        if (
+                            self.is_running
+                            or self.is_paused
+                        )
                         else "disabled"
                     )
                 )
@@ -876,7 +941,10 @@ class PomodoroTimer:
                 self.skip_button.configure(
                     state=(
                         "normal"
-                        if self.is_running
+                        if (
+                            self.is_running
+                            or self.is_paused
+                        )
                         else "disabled"
                     )
                 )
@@ -931,6 +999,22 @@ class PomodoroTimer:
             font=(
                 self.app_font_family,
                 16,
+                "bold"
+            )
+        )
+
+        self.stats_button.configure(
+            font=(
+                self.app_font_family,
+                13,
+                "bold"
+            )
+        )
+
+        self.schedule_button.configure(
+            font=(
+                self.app_font_family,
+                13,
                 "bold"
             )
         )
@@ -1020,6 +1104,7 @@ class PomodoroTimer:
         if self.background_label is not None:
 
             try:
+
                 self.background_label.destroy()
 
             except Exception:
@@ -1452,7 +1537,11 @@ class PomodoroTimer:
 
     def toggle_scheduler_panel(self):
 
-        if self.scheduler_panel.visible:
+        if getattr(
+            self.scheduler_panel,
+            "visible",
+            False
+        ):
 
             self.scheduler_panel.hide()
 
@@ -1466,7 +1555,11 @@ class PomodoroTimer:
 
     def toggle_stats_panel(self):
 
-        if self.stats_panel.visible:
+        if getattr(
+            self.stats_panel,
+            "visible",
+            False
+        ):
 
             self.stats_panel.hide()
 
@@ -1702,47 +1795,28 @@ class PomodoroTimer:
             except Exception:
                 pass
 
-    def play_session_alert(
+    # ======================================================
+    # SESSION ALERTS
+    # ======================================================
+
+    def _show_session_notification(
         self,
         session_name
     ):
-
-        if not self.enable_session_alerts:
-
-            return
-
-        self._play_session_sound(
-            session_name
-        )
-
-        if not self.show_notifications:
-
-            return
-
-        try:
-
-            from windows_toasts import Toast, WindowsToaster
-
-            WINDOWS_TOASTS_AVAILABLE = True
-
-        except ImportError:
-            WINDOWS_TOASTS_AVAILABLE = False
-
-    def test_session_alert(
-            self,
-            session_name
-        ):
 
         if not self.show_notifications:
             return
 
         if not WINDOWS_TOASTS_AVAILABLE:
+
             print(
-            "Windows notification package is not available."
-        )   
-        return
+                "Windows notification package is not available."
+            )
+
+            return
 
         try:
+
             message = (
                 self.notification_message.replace(
                     "{session}",
@@ -1766,10 +1840,41 @@ class PomodoroTimer:
             )
 
         except Exception as error:
+
             print(
                 "Notification error:",
                 error
             )
+
+    def play_session_alert(
+        self,
+        session_name
+    ):
+
+        if not self.enable_session_alerts:
+            return
+
+        self._play_session_sound(
+            session_name
+        )
+
+        self._show_session_notification(
+            session_name
+        )
+
+    def test_session_alert(
+        self,
+        session_name
+    ):
+
+        self._play_session_sound(
+            session_name
+        )
+
+        self._show_session_notification(
+            session_name
+        )
+
     # ======================================================
     # TIMER LOGIC
     # ======================================================
@@ -2030,12 +2135,16 @@ class PomodoroTimer:
                     self,
                     "scheduler_panel"
                 )
-                and self.scheduler_panel.visible
+                and getattr(
+                    self.scheduler_panel,
+                    "visible",
+                    False
+                )
             ):
 
                 self.scheduler_panel.refresh()
 
-        # Play the correct alert.
+        # Play alert and notification.
         self.play_session_alert(
             session_name
         )
@@ -2077,3 +2186,7 @@ class PomodoroTimer:
             self.skip_button.configure(
                 state="disabled"
             )
+
+        # Automatically prepare the next session,
+        # but do not start it until Start is clicked.
+        self.start_next_session()

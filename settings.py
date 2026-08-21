@@ -469,6 +469,7 @@ class SettingsPanel:
             variable=self.notifications_var
         )
 
+        # Row 1: checkbox
         self.notifications_checkbox.grid(
             row=1,
             column=0,
@@ -481,6 +482,7 @@ class SettingsPanel:
         self.notification_title_var = tk.StringVar()
         self.notification_message_var = tk.StringVar()
 
+        # Row 2: title
         self._add_entry_row(
             self.notification_section,
             1,
@@ -488,6 +490,7 @@ class SettingsPanel:
             self.notification_title_var
         )
 
+        # Row 3: message
         self._add_entry_row(
             self.notification_section,
             2,
@@ -539,9 +542,6 @@ class SettingsPanel:
         }
 
         self.sound_file_labels = {}
-
-        # Each sound block uses 3 rows.
-        # The section title occupies row 0.
 
         self._add_sound_row(
             self.sound_section,
@@ -760,10 +760,6 @@ class SettingsPanel:
         choices
     ):
 
-        # --------------------------------------------------
-        # ROW 1: LABEL
-        # --------------------------------------------------
-
         label = ctk.CTkLabel(
             parent,
             text=f"{session_name} Sound"
@@ -776,10 +772,6 @@ class SettingsPanel:
             padx=10,
             pady=6
         )
-
-        # --------------------------------------------------
-        # ROW 1: SOUND MENU
-        # --------------------------------------------------
 
         menu = ctk.CTkOptionMenu(
             parent,
@@ -801,10 +793,6 @@ class SettingsPanel:
             pady=6
         )
 
-        # --------------------------------------------------
-        # ROW 1: TEST BUTTON
-        # --------------------------------------------------
-
         test_button = ctk.CTkButton(
             parent,
             text="Test",
@@ -823,10 +811,6 @@ class SettingsPanel:
             pady=6
         )
 
-        # --------------------------------------------------
-        # ROW 2: CHOOSE FILE BUTTON
-        # --------------------------------------------------
-
         choose_button = ctk.CTkButton(
             parent,
             text="Choose Sound File",
@@ -844,10 +828,6 @@ class SettingsPanel:
             padx=10,
             pady=(0, 4)
         )
-
-        # --------------------------------------------------
-        # ROW 3: FILE NAME
-        # --------------------------------------------------
 
         file_label = ctk.CTkLabel(
             parent,
@@ -894,7 +874,6 @@ class SettingsPanel:
                     session_name
                 )
 
-                # User cancelled.
                 if not self.custom_sound_vars[
                     session_name
                 ].get():
@@ -917,7 +896,6 @@ class SettingsPanel:
 
             return
 
-        # Normal sound selection
         self.timer.sound_settings[
             session_name
         ] = choice
@@ -954,11 +932,9 @@ class SettingsPanel:
             ]
         )
 
-        # User cancelled
         if not file_path:
             return
 
-        # Store path
         self.custom_sound_vars[
             session_name
         ].set(
@@ -969,7 +945,6 @@ class SettingsPanel:
             session_name
         ] = file_path
 
-        # Automatically select Custom
         self.sound_vars[
             session_name
         ].set(
@@ -980,7 +955,6 @@ class SettingsPanel:
             session_name
         ] = "Custom"
 
-        # Display only filename
         file_name = os.path.basename(
             file_path
         )
@@ -1004,7 +978,6 @@ class SettingsPanel:
             session_name
         ].get()
 
-        # Do not test Custom without a file
         if sound_choice == "Custom" and not custom_path:
 
             self.show_error(
@@ -1014,7 +987,6 @@ class SettingsPanel:
 
             return
 
-        # Update timer with current values
         self.timer.sound_settings[
             session_name
         ] = sound_choice
@@ -1023,7 +995,6 @@ class SettingsPanel:
             session_name
         ] = custom_path
 
-        # Play sound
         self.timer.test_session_alert(
             session_name
         )
@@ -1085,10 +1056,9 @@ class SettingsPanel:
             self.timer.long_break_message
         )
 
-        # Theme mode
         mode = self.timer.theme_manager.data.get(
             "mode",
-            "Light"
+            "System"
         )
 
         if mode not in (
@@ -1137,10 +1107,6 @@ class SettingsPanel:
         self.notification_message_var.set(
             self.timer.notification_message
         )
-
-        # --------------------------------------------------
-        # SOUND SETTINGS
-        # --------------------------------------------------
 
         for session_name in (
             "Work",
@@ -1312,14 +1278,8 @@ class SettingsPanel:
         # --------------------------------------------------
 
         self.timer.work_min = work_min
-
-        self.timer.short_break_min = (
-            short_break_min
-        )
-
-        self.timer.long_break_min = (
-            long_break_min
-        )
+        self.timer.short_break_min = short_break_min
+        self.timer.long_break_min = long_break_min
 
         # --------------------------------------------------
         # MESSAGES
@@ -1353,6 +1313,9 @@ class SettingsPanel:
         # BUTTON OPTIONS
         # --------------------------------------------------
 
+        # The BooleanVars already contain the correct values.
+        # Calling these methods updates the actual button layout.
+
         self.timer.include_pause = (
             self.pause_var.get()
         )
@@ -1362,7 +1325,6 @@ class SettingsPanel:
         )
 
         self.timer.toggle_pause_option()
-
         self.timer.toggle_skip_option()
 
         # --------------------------------------------------
@@ -1409,7 +1371,6 @@ class SettingsPanel:
                 session_name
             ].get()
 
-            # Prevent Custom without file
             if (
                 sound_choice == "Custom"
                 and not custom_path
@@ -1471,6 +1432,8 @@ class SettingsPanel:
             self.window
         )
 
+        dialog.grab_set()
+
         ctk.CTkLabel(
             dialog,
             text=message,
@@ -1508,6 +1471,8 @@ class SettingsPanel:
         dialog.transient(
             self.window
         )
+
+        dialog.grab_set()
 
         ctk.CTkLabel(
             dialog,
@@ -1612,7 +1577,6 @@ class SettingsPanel:
             button_bg
         )
 
-        # Explicitly theme Custom Theme button
         self.custom_theme_button.configure(
             fg_color=button_bg,
             hover_color=button_bg,
