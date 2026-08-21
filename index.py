@@ -79,8 +79,13 @@ except Exception as error:
     logo_photo = None
 
 
-# Hide the main window while the splash screen is visible.
+# ==========================================================
+# HIDE MAIN WINDOW DURING STARTUP
+# ==========================================================
+
 app.withdraw()
+
+app.timer = None
 
 
 # ==========================================================
@@ -101,6 +106,9 @@ class SplashScreen:
         self.window = ctk.CTkToplevel(
             main
         )
+
+        # Keep the splash hidden while it is being built.
+        self.window.withdraw()
 
         self.window.overrideredirect(
             True
@@ -224,6 +232,16 @@ class SplashScreen:
         )
 
         # --------------------------------------------------
+        # FINISH BUILDING BEFORE SHOWING
+        # --------------------------------------------------
+
+        self.window.update_idletasks()
+
+        self.window.deiconify()
+
+        self.window.lift()
+
+        # --------------------------------------------------
         # START ANIMATION
         # --------------------------------------------------
 
@@ -242,6 +260,9 @@ class SplashScreen:
         self,
         count
     ):
+
+        if not self.window.winfo_exists():
+            return
 
         dots = "." * (
             count % 4
@@ -277,12 +298,19 @@ class SplashScreen:
 
             self.animation_id = None
 
-        # Destroy the splash window.
+        # Destroy the splash window first.
         if self.window.winfo_exists():
 
-            self.window.destroy()
+            try:
 
-        # Start the main application.
+                self.window.destroy()
+
+            except Exception:
+
+                pass
+
+        # Build the main application while the
+        # main window is still hidden.
         launch_main_app()
 
 
@@ -300,16 +328,27 @@ def save_settings_and_close():
             and app.timer is not None
         ):
 
-            # Save the current application settings.
-            #
-            # Do NOT call:
-            #
-            # app.timer.settings_panel._apply_changes()
-            #
-            # because the current SettingsPanel no longer
-            # contains that method.
-
             app.timer.save_settings()
+
+            # Cleanly destroy child windows before
+            # destroying the main application window.
+            scheduler_panel = getattr(
+                app.timer,
+                "scheduler_panel",
+                None
+            )
+
+            if scheduler_panel is not None:
+
+                try:
+
+                    if scheduler_panel.window.winfo_exists():
+
+                        scheduler_panel.window.destroy()
+
+                except Exception:
+
+                    pass
 
     except Exception as error:
 
@@ -319,8 +358,6 @@ def save_settings_and_close():
 
     finally:
 
-        # Always close the application, even if saving
-        # settings fails.
         try:
 
             app.destroy()
@@ -331,24 +368,78 @@ def save_settings_and_close():
 
 
 # ==========================================================
+# SHOW FINISHED MAIN APPLICATION
+# ==========================================================
+
+def show_main_app():
+
+    try:
+
+        # Make sure all pending geometry calculations
+        # are completed before showing the window.
+        app.update_idletasks()
+
+        app.deiconify()
+
+        app.lift()
+
+        app.focus_force()
+
+    except Exception as error:
+
+        print(
+            f"Could not show main application: {error}"
+        )
+
+
+# ==========================================================
 # LAUNCH MAIN APPLICATION
 # ==========================================================
 
 def launch_main_app():
 
-    # Show the main window.
-    app.deiconify()
+    try:
 
-    # Create the Pomodoro application.
-    app.timer = PomodoroTimer(
-        app
-    )
+        # --------------------------------------------------
+        # IMPORTANT:
+        #
+        # Build PomodoroTimer while the main application
+        # window is still hidden.
+        #
+        # This prevents the empty/glitching window from
+        # briefly appearing before the interface is ready.
+        # --------------------------------------------------
 
-    # Handle the X / Close button.
-    app.protocol(
-        "WM_DELETE_WINDOW",
-        save_settings_and_close
-    )
+        app.timer = PomodoroTimer(
+            app
+        )
+
+        # Handle the X / Close button.
+        app.protocol(
+            "WM_DELETE_WINDOW",
+            save_settings_and_close
+        )
+
+        # --------------------------------------------------
+        # Show the window only after CustomTkinter and Tk
+        # have finished processing all pending UI updates.
+        # --------------------------------------------------
+
+        app.after_idle(
+            show_main_app
+        )
+
+    except Exception as error:
+
+        print(
+            f"Could not launch application: {error}"
+        )
+
+        # If startup fails, show the main window so the
+        # application does not remain permanently hidden.
+        app.after_idle(
+            show_main_app
+        )
 
 
 # ==========================================================

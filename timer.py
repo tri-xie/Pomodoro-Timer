@@ -205,7 +205,7 @@ class PomodoroTimer:
         # ==================================================
 
         self.root.title(
-            "Pomodoro Timer"
+            "Pomodoro : Keep Focused"
         )
 
         self.root.configure(
