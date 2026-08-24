@@ -1,4 +1,5 @@
 ﻿from PIL import Image, ImageTk
+from datetime import datetime
 import tkinter as tk
 import tkinter.font as tkfont
 import os
@@ -247,6 +248,8 @@ class PomodoroTimer:
         )
 
         self.current_task_id = None
+        self.current_scheduled_task = None
+        self.scheduled_task_duration = None
 
         # ==================================================
         # BUTTON STATE
@@ -626,6 +629,8 @@ class PomodoroTimer:
     ):
 
         if session_name == "Work":
+            if self.scheduled_task_duration is not None:
+                return self.scheduled_task_duration
             return self.work_min
 
         if session_name == "Short Break":
@@ -717,6 +722,8 @@ class PomodoroTimer:
         self.is_running = False
         self.is_paused = False
         self.current_task_id = None
+        self.current_scheduled_task = None
+        self.scheduled_task_duration = None
 
         self.remaining_count = (
             self.work_min * 60
@@ -1261,37 +1268,94 @@ class PomodoroTimer:
 
     def apply_custom_theme(self):
 
+        # ThemeManager is the single source of truth.
+        # Re-resolve the palette so the main window is repainted
+        # immediately after a custom preset/background is applied.
         self.apply_theme()
 
     def apply_theme(self):
 
-        ctk.set_appearance_mode(
-            self.theme_manager.ctk_mode()
+        # CustomTkinter only accepts Light, Dark, or System as its
+        # appearance mode. ThemeManager maps Custom to a valid CTk mode
+        # while still allowing us to use the custom palette below.
+        try:
+
+            ctk.set_appearance_mode(
+                self.theme_manager.ctk_mode()
+            )
+
+        except Exception:
+
+            ctk.set_appearance_mode(
+                "System"
+            )
+
+        try:
+
+            detected_mode = ctk.get_appearance_mode()
+
+        except Exception:
+
+            detected_mode = "Light"
+
+        self.palette = self.theme_manager.resolve(
+            detected_mode
         )
 
-        self.palette = (
-            self.theme_manager.resolve(
-                ctk.get_appearance_mode()
-            )
+        # Do not depend only on IS_CUSTOM being present in the palette.
+        # Older/newer ThemeManager versions may expose the custom state
+        # through data["mode"] instead. This keeps the main window and
+        # Settings window on the exact same custom-theme state.
+        manager_mode = self.theme_manager.data.get(
+            "mode",
+            "System"
+        )
+
+        is_custom = (
+            manager_mode == "Custom"
+            or self.palette.get("IS_CUSTOM", False)
         )
 
         self.appearance_mode = (
-            self.palette["MODE"]
+            "Custom"
+            if is_custom
+            else self.palette.get(
+                "MODE",
+                manager_mode
+            )
         )
 
-        self.theme = (
-            self.palette["PRESET"]
+        self.theme = self.palette.get(
+            "PRESET",
+            self.theme_manager.data.get(
+                "preset",
+                "Classic"
+            )
         )
 
-        app_bg = self.palette["APP_BG"]
-        canvas_bg = self.palette["CANVAS_BG"]
-        text_color = self.palette["TEXT_COLOR"]
-        button_bg = self.palette["BUTTON_BG"]
-
-        is_custom = self.palette.get(
-            "IS_CUSTOM",
-            False
+        app_bg = self.palette.get(
+            "APP_BG",
+            self.root.cget("bg")
         )
+
+        canvas_bg = self.palette.get(
+            "CANVAS_BG",
+            app_bg
+        )
+
+        text_color = self.palette.get(
+            "TEXT_COLOR",
+            "#111111"
+        )
+
+        button_bg = self.palette.get(
+            "BUTTON_BG",
+            app_bg
+        )
+
+        # --------------------------------------------------
+        # MAIN WINDOW
+        # --------------------------------------------------
 
         try:
 
@@ -1301,6 +1365,23 @@ class PomodoroTimer:
 
         except Exception:
             pass
+
+        # The transparent action area must remain transparent so the
+        # resolved application background can show through it.
+        if getattr(
+            self,
+            "top_actions_frame",
+            None
+        ) is not None:
+
+            try:
+
+                self.top_actions_frame.configure(
+                    fg_color="transparent"
+                )
+
+            except Exception:
+                pass
 
         for widget_name in (
             "title_label",
@@ -1326,20 +1407,33 @@ class PomodoroTimer:
                 except Exception:
                     pass
 
+        # --------------------------------------------------
+        # TIMER CANVAS
+        # --------------------------------------------------
+
         if getattr(
             self,
             "canvas",
             None
         ) is not None:
 
-            self.canvas.configure(
-                bg=canvas_bg
-            )
+            try:
 
-            self.canvas.itemconfig(
-                self.time_text,
-                fill=text_color
-            )
+                self.canvas.configure(
+                    bg=canvas_bg
+                )
+
+                self.canvas.itemconfig(
+                    self.time_text,
+                    fill=text_color
+                )
+
+            except Exception:
+                pass
+
+        # --------------------------------------------------
+        # TIMER BUTTON AREA
+        # --------------------------------------------------
 
         if getattr(
             self,
@@ -1347,9 +1441,18 @@ class PomodoroTimer:
             None
         ) is not None:
 
-            self.button_frame.configure(
-                fg_color=app_bg
-            )
+            try:
+
+                self.button_frame.configure(
+                    fg_color=app_bg
+                )
+
+            except Exception:
+                pass
+
+        # --------------------------------------------------
+        # TOP ACTION BUTTONS
+        # --------------------------------------------------
 
         for button_name in (
             "stats_button",
@@ -1376,8 +1479,13 @@ class PomodoroTimer:
                 except Exception:
                     pass
 
+        # --------------------------------------------------
+        # TIMER BUTTONS
+        # --------------------------------------------------
+
         if is_custom:
 
+            # Custom themes control all timer button colors.
             for button_name in (
                 "start_button",
                 "pause_button",
@@ -1406,39 +1514,62 @@ class PomodoroTimer:
 
         else:
 
-            self.start_button.configure(
-                fg_color="#2ecc71",
-                hover_color="#27ae60",
-                text_color=text_color
-            )
+            # Standard themes keep the normal semantic timer colors.
+            try:
 
-            self.reset_button.configure(
-                fg_color="#e74c3c",
-                hover_color="#c0392b",
-                text_color=text_color
-            )
+                self.start_button.configure(
+                    fg_color="#2ecc71",
+                    hover_color="#27ae60",
+                    text_color=text_color
+                )
+
+                self.reset_button.configure(
+                    fg_color="#e74c3c",
+                    hover_color="#c0392b",
+                    text_color=text_color
+                )
+
+            except Exception:
+                pass
 
             if self.pause_button:
 
-                self.pause_button.configure(
-                    fg_color="#f39c12",
-                    hover_color="#d68910",
-                    text_color=text_color
-                )
+                try:
+
+                    self.pause_button.configure(
+                        fg_color="#f39c12",
+                        hover_color="#d68910",
+                        text_color=text_color
+                    )
+
+                except Exception:
+                    pass
 
             if self.skip_button:
 
-                self.skip_button.configure(
-                    fg_color="#3498db",
-                    hover_color="#2980b9",
-                    text_color=text_color
-                )
+                try:
+
+                    self.skip_button.configure(
+                        fg_color="#3498db",
+                        hover_color="#2980b9",
+                        text_color=text_color
+                    )
+
+                except Exception:
+                    pass
+
+        # --------------------------------------------------
+        # CUSTOM BACKGROUND IMAGE
+        # --------------------------------------------------
 
         if is_custom:
 
             image_path = self.palette.get(
                 "BACKGROUND_IMAGE",
-                ""
+                self.theme_manager.data.get(
+                    "background_image",
+                    ""
+                )
             )
 
             if image_path:
@@ -1455,6 +1586,10 @@ class PomodoroTimer:
 
             self._clear_background_image()
 
+        # --------------------------------------------------
+        # CHILD PANELS
+        # --------------------------------------------------
+
         for panel_name in (
             "settings_panel",
             "stats_panel",
@@ -1467,12 +1602,12 @@ class PomodoroTimer:
                 None
             )
 
-            if (
-                panel is not None
-                and hasattr(
-                    panel,
-                    "refresh_theme"
-                )
+            if panel is None:
+                continue
+
+            if hasattr(
+                panel,
+                "refresh_theme"
             ):
 
                 try:
@@ -1481,6 +1616,38 @@ class PomodoroTimer:
 
                 except Exception:
                     pass
+
+            else:
+
+                # Stats/Scheduler currently use CustomTkinter's global
+                # appearance handling, so at minimum refresh their toplevel
+                # background when the custom palette changes.
+                window = getattr(
+                    panel,
+                    "window",
+                    None
+                )
+
+                if window is not None:
+
+                    try:
+
+                        window.configure(
+                            fg_color=app_bg
+                        )
+
+                    except Exception:
+                        pass
+
+        # Force Tk/CustomTkinter to repaint now instead of waiting for the
+        # next interaction. This is important when changing themes while a
+        # Settings window is open.
+        try:
+
+            self.root.update_idletasks()
+
+        except Exception:
+            pass
 
     # ======================================================
     # THEME CUSTOMIZER
@@ -1505,35 +1672,182 @@ class PomodoroTimer:
         task
     ):
 
-        self.current_task_id = task.get(
-            "id"
-        )
+        if not task:
+            return
+
+        try:
+            minutes = int(
+                task.get(
+                    "duration_minutes",
+                    self.work_min
+                )
+            )
+        except (TypeError, ValueError):
+            minutes = self.work_min
+
+        if minutes <= 0:
+            minutes = self.work_min
 
         title = task.get(
             "title",
             "Focus Session"
         )
 
-        minutes = int(
-            task.get(
-                "duration_minutes",
-                self.work_min
-            )
-        )
-
-        self.work_min = minutes
-
+        # Selecting a scheduled session only prepares it.
+        # The user must still press Start in the main timer.
         self.reset_timer()
 
         self.current_task_id = task.get(
             "id"
+        )
+        self.current_scheduled_task = dict(task)
+        self.scheduled_task_duration = minutes
+
+        self.remaining_count = minutes * 60
+
+        self.title_label.configure(
+            text="Work",
+            text_color=self.palette["TEXT_COLOR"]
         )
 
         self.message_label.configure(
             text=title
         )
 
-        self.start_timer()
+        self.canvas.itemconfig(
+            self.time_text,
+            text=f"{minutes:02d}:00"
+        )
+
+        self.start_button.configure(
+            state="normal"
+        )
+
+        if (
+            self.include_pause
+            and self.pause_button
+        ):
+            self.pause_button.configure(
+                state="disabled",
+                text="Pause"
+            )
+
+        if (
+            self.include_skip
+            and self.skip_button
+        ):
+            self.skip_button.configure(
+                state="disabled"
+            )
+
+    def _is_recurring_task(
+        self,
+        task
+    ):
+
+        if not task:
+            return False
+
+        for key in (
+            "recurring",
+            "is_recurring",
+            "repeat",
+            "recurrence"
+        ):
+            value = task.get(key)
+
+            if isinstance(value, bool):
+                if value:
+                    return True
+
+            elif isinstance(value, str):
+                if value.strip().lower() not in (
+                    "",
+                    "none",
+                    "once",
+                    "one-time",
+                    "one_time"
+                ):
+                    return True
+
+            elif value:
+                return True
+
+        for key in (
+            "recurrence_days",
+            "repeat_days",
+            "days_of_week"
+        ):
+            value = task.get(key)
+            if value:
+                return True
+
+        return False
+
+    def _finish_scheduled_task(self):
+
+        task = self.current_scheduled_task
+        task_id = self.current_task_id
+
+        if not task_id:
+            self.current_scheduled_task = None
+            self.scheduled_task_duration = None
+            return
+
+        try:
+            if self._is_recurring_task(task):
+                # Recurring schedules remain active. Store the completion
+                # time so TaskStore can advance the next occurrence.
+                completed_at = datetime.now().isoformat(
+                    timespec="minutes"
+                )
+
+                if hasattr(
+                    self.task_store,
+                    "complete_occurrence"
+                ):
+                    self.task_store.complete_occurrence(
+                        task_id
+                    )
+                elif hasattr(
+                    self.task_store,
+                    "advance_recurring_task"
+                ):
+                    self.task_store.advance_recurring_task(
+                        task_id
+                    )
+                else:
+                    self.task_store.update(
+                        task_id,
+                        last_completed_at=completed_at
+                    )
+
+            else:
+                # One-time scheduled sessions are completed permanently.
+                self.task_store.update(
+                    task_id,
+                    completed=True
+                )
+
+        except Exception as error:
+            print(
+                "Could not update scheduled session:",
+                error
+            )
+
+        self.current_task_id = None
+        self.current_scheduled_task = None
+        self.scheduled_task_duration = None
+
+        if (
+            hasattr(self, "scheduler_panel")
+            and getattr(
+                self.scheduler_panel,
+                "visible",
+                False
+            )
+        ):
+            self.scheduler_panel.refresh()
 
     def toggle_scheduler_panel(self):
 
@@ -1945,6 +2259,34 @@ class PomodoroTimer:
                 state="normal"
             )
 
+        # A selected scheduled session is a Work session with its own
+        # duration/message. Do not advance the normal Pomodoro cycle here.
+        if self.current_scheduled_task is not None:
+
+            self.reps += 1
+
+            self.title_label.configure(
+                text="Work",
+                text_color=self.palette["TEXT_COLOR"]
+            )
+
+            self.message_label.configure(
+                text=self.current_scheduled_task.get(
+                    "title",
+                    "Focus Session"
+                )
+            )
+
+            self.remaining_count = (
+                self.scheduled_task_duration * 60
+            )
+
+            self.count_down(
+                self.remaining_count
+            )
+
+            return
+
         self.start_next_session()
 
         self.count_down(
@@ -2054,7 +2396,19 @@ class PomodoroTimer:
                 state="normal"
             )
 
-        # Start next session.
+        if (
+            self.current_scheduled_task is not None
+            and self.current_task_id
+        ):
+            # A skipped scheduled occurrence is not completed. For recurring
+            # schedules, leave the schedule active so it can be used again.
+            # One-time schedules remain available because the session was not
+            # completed.
+            self.current_task_id = None
+            self.current_scheduled_task = None
+            self.scheduled_task_duration = None
+
+        # Start the next normal Pomodoro session.
         self.start_next_session()
 
         self.count_down(
@@ -2113,36 +2467,15 @@ class PomodoroTimer:
             completed=True
         )
 
-        # Complete scheduled task after Work session.
+        # Complete the scheduled occurrence only after the user actually
+        # finishes the session. Recurring schedules remain active; one-time
+        # schedules are marked completed.
         if (
             session_name == "Work"
-            and getattr(
-                self,
-                "current_task_id",
-                None
-            )
+            and self.current_task_id
+            and self.current_scheduled_task is not None
         ):
-
-            self.task_store.update(
-                self.current_task_id,
-                completed=True
-            )
-
-            self.current_task_id = None
-
-            if (
-                hasattr(
-                    self,
-                    "scheduler_panel"
-                )
-                and getattr(
-                    self.scheduler_panel,
-                    "visible",
-                    False
-                )
-            ):
-
-                self.scheduler_panel.refresh()
+            self._finish_scheduled_task()
 
         # Play alert and notification.
         self.play_session_alert(

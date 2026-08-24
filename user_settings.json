@@ -1,5 +1,5 @@
 {
-  "appearance_mode": "Dark",
+  "appearance_mode": "Custom",
   "work_min": 25,
   "short_break_min": 5,
   "long_break_min": 20,
@@ -17,8 +17,8 @@
   "notification_message": "Session complete.",
   "work_sound": "Custom",
   "short_break_sound": "Custom",
-  "long_break_sound": "Information",
-  "work_custom_sound": "C:/Users/CodeCamp PC5B/Downloads/Joy Crookes - Feet Don't Fail Me Now (Official Video).mp3",
+  "long_break_sound": "Custom",
+  "work_custom_sound": "C:/Users/CodeCamp PC5B/Downloads/deawthanapon-lofi-relax-beat-loop-bpm-88-eb-major-ii-v-i-361752.mp3",
   "short_break_custom_sound": "C:/Users/CodeCamp PC5B/Downloads/kaazoom-velvet-espresso-amp-rainy-panes-15-sec-stinger-576185.mp3",
-  "long_break_custom_sound": ""
+  "long_break_custom_sound": "C:/Users/CodeCamp PC5B/Downloads/Joy Crookes - Feet Don't Fail Me Now (Official Video).mp3"
 }
